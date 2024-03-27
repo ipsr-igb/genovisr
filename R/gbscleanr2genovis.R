@@ -63,14 +63,20 @@ gbscleanr2genovis <- function(gds_fn,
                                        ref_allele = allele[, 1],
                                        alt_allele = allele[, 2]),
               sample_info = data.frame(id = getSamID(object = gds)),
-              genotype = getGenotype(object = gds, node = genotype_node))
+              genotype = getGenotype(object = gds, 
+                                     node = genotype_node,
+                                     parents = TRUE),
+              haplotype = NULL,
+              dosage = NULL)
 
   # Add haplotype information if available.
   if(exist.gdsn(node = gds$root, path = "annotation/format/HAP")){
     out$haplotype  <- getHaplotype(object = gds, parents = TRUE)
 
-  } else {
-    out$haplotype <- NULL
+  }
+  
+  if(exist.gdsn(node = gds$root, path = "annotation/format/DS")){
+    out$haplotype  <- getGenotype(object = gds, node = "dosage", parents = TRUE)
   }
 
   # Set the genovis class to the output.
