@@ -58,12 +58,15 @@ gbscleanr2genovis <- function(gds_fn,
   }
 
   # Organize marker information and genotype information in an output object.
-  out <- list(marker_info = data.frame(chr = factor(getChromosome(object = gds)),
-                                       pos= as.integer(getPosition(object = gds)),
+  chr <- getChromosome(object = gds)
+  pos <- getPosition(object = gds)
+  out <- list(marker_info = data.frame(id = paste(chr, pos, sep = "_"),
+                                       chr = factor(chr),
+                                       pos = as.integer(pos),
                                        ref_allele = allele[, 1],
                                        alt_allele = allele[, 2]),
               sample_info = data.frame(id = getSamID(object = gds)),
-              genotype = getGenotype(object = gds, 
+              genotype = getGenotype(object = gds,
                                      node = genotype_node,
                                      parents = TRUE),
               haplotype = NULL,
@@ -74,7 +77,7 @@ gbscleanr2genovis <- function(gds_fn,
     out$haplotype  <- getHaplotype(object = gds, parents = TRUE)
 
   }
-  
+
   if(exist.gdsn(node = gds$root, path = "annotation/format/DS")){
     out$haplotype  <- getGenotype(object = gds, node = "dosage", parents = TRUE)
   }
