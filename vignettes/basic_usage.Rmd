@@ -84,9 +84,29 @@ obj$dosage[1:5, 1:5]
 
 # Data import
 ## From GBScleanR output
+The genovis class object can be construct directly from a GDS file 
+created by the GBScleanR package. The GBScleanR package provides the functions to
+convert Variant Call Format (VCF) files to Genotype Data Structure (GDS) files 
+for quick access to the large genotype data and estimate haplotypes and dosages
+of genotype markers based on allelic read counts using a hidden Markov model. The 
+`gbscleanr2genovis()` function extract marker, sample and genotype information
+from a given GDS file. If the GDS file contains haplotype and dosage information,
+ these data are also included in the output genovis class object.
+
+```{r}
+obj <- gbscleanr2genovis(gds_fn = "/path/to/your/gds_file.gds")
+```
+
 
 # Data visualization
+The genotype, haplotype, and dosage information in a genovis class object can be
+visualized using a variety of data visualization functions provided by the 
+genovisr package.
+
 ## Classical graphical genotype
+```{r}
+
+```
 
 
 ## 

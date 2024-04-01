@@ -10,7 +10,6 @@
 #' information stored in the input GDS file should be loaded to apply the
 #' filtering on markers and samples. See [GBScleanR::loadGDS()] and
 #' [GBScleanR::closeGDS()].
-#' @param ploidy Not implemented yet.
 #' @param verbose A logical value to indicate whether to show messages from
 #' the function.
 #'
