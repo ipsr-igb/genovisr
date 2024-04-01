@@ -1,0 +1,92 @@
+---
+title: "Basic uasage of the genovis pakage"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+
+vignette: >
+  %\VignetteIndexEntry{Basic uasage of the genovis pakage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(genovisr)
+```
+
+# Genovis class object
+Create dummy data to walk through the package with.
+```{r}
+obj <- simGenovis()
+```
+
+### Marker information
+The marker_info slot of the genovis class object stores the position and 
+allele information of the genotyping markers.
+The `id` column shows marker IDs that have been created by concatenating the 
+chromosome IDs and physical positions of markers.
+```{r}
+# Marker information
+head(obj$marker_info)
+```
+
+
+
+The sample_info slot stores sample IDs. If your data was created by merging two
+genovis class object with specifying the `pop` argument as introduced in the 
+section below, this slot also contains the `pop` column to indicate which 
+populations the samples belong to.
+```{r}
+# Sample information
+head(obj$sample_info)
+```
+
+
+
+Genotype calls created by variant callers, e.g. samtools and GATK, are stored in 
+the genotype slot as an N x M matrix, where N and M are the number of samples and 
+markers, respectively.
+```{r}
+# Genotype data
+obj$genotype[1:5, 1:5]
+```
+
+
+
+Estimated haplotype data created by GBScleanR was stored in the haplotype slot 
+as a P x N x M array, where P, N, and M are the number of ploidy, samples, and 
+markers.
+```{r}
+# Haplotype data
+obj$haplotype[, 1:5, 1:5]
+```
+
+The dosage slot stores dosage data calculated from the haplotype data. The 
+dosage data will be provided only if the given population shows segregation of 
+two haplotypes, e.g. a biparental population derived from two inbred founders. 
+The integer of the `[i,j]` element of the dosage data matrix indicates the number
+of the Hap2 allele at the `j`th marker of the `i`th sample.
+```{r}
+# Dosage data
+obj$dosage[1:5, 1:5]
+```
+
+
+# Data import
+## From GBScleanR output
+
+# Data visualization
+## Classical graphical genotype
+
+
+## 

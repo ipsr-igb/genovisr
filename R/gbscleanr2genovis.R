@@ -15,8 +15,9 @@
 #' the function.
 #'
 #' @importClassesFrom GBScleanR GbsrGenotypeData
-#' @importMethodsFrom GBScleanR loadGDS getGenotype getHaplotype getRead
+#' @importMethodsFrom GBScleanR getGenotype getHaplotype getRead
 #' @importFrom gdsfmt exist.gdsn
+#' @importFrom GBScleanR loadGDS
 #'
 #' @examples
 #' # Not run
