@@ -5,9 +5,8 @@
 #'
 
 plotGraphGeno <- function(object,
-                          data = "genotype",
+                          data = "haplotype",
                           sample = NULL,
-                          marker = NULL,
                           direction = "h"){
   if(is.null(sample)){
     sample <- rep(TRUE, nrow(object$sample_info))
@@ -31,90 +30,101 @@ plotGraphGeno <- function(object,
     sample[-which(sample)[1]] <- FALSE
   }
   
-  if(is.null(marker)){
-    marker <- rep(TRUE, nrow(object$marker_info))
-    
-  } else {
-    if(is.character(marker)){
-      marker <- object$marker_info$id %in% marker
-      
-    } else if(is.character(marker)){
-      marker <- object$marker_info$id %in% marker
-      
-    } else if(is.numeric(marker)){
-      marker <- seq_along(object$marker_info$id) %in% marker
-    }
-  }
-  
-  data <- match.arg(arg = data, choices = c("genotype", "haplotype", "dosage"))
-  if(data == "genotype"){
-    dat <- object$genotype[sample, marker]
-    rownames(dat) <- object$sample_info$id[sample]
-    legend <- "Genotype"
-    sample_lables <- rownames(dat)
-    scale_breaks <- 0:2
-    scale_labels <- c("Ref", "Het", "Alt")
-    
-  } else if(data == "haplotype"){
-    dat <- object$haplotype[, sample, marker]
-    n_hap <- dim(dat)[1]
-    n_sample <- dim(dat)[2]
-    dat <- apply(X = dat, MARGIN = 3, c)
-    rownames(dat) <- paste(rep(object$sample_info$id[sample], each = n_hap),
+  data <- match.arg(arg = data, choices = c("haplotype", "dosage"))
+  if(data == "haplotype"){
+    df <- object$ranges$haplotype
+    n_hap <- dim(object$haplotype)[1]
+    sample_lables <- paste(rep(object$sample_info$id[sample], each = n_hap), 
                            paste0("hap", seq_len(n_hap)), sep = "_")
     legend <- "Haplotype"
-    sample_lables <- rownames(dat)
     scale_breaks <- attributes(object$haplotype)$scale_breaks
     scale_labels <- attributes(object$haplotype)$scale_labels
     
   } else if(data == "dosage"){
-    dat <- object$dosage[sample, marker]
-    dosage_levels <- sort(unique(as.vector(dat)))
-    rownames(dat) <- object$sample_info$id[sample]
+    df <- object$ranges$dosage
+    sample_lables <- object$sample_info$id[sample]
     legend <- "Dosage"
-    sample_lables <- rownames(dat)
-    scale_breaks <- dosage_levels
-    scale_labels <- paste0("Plex", dosage_levels)
-  }
-  
-  df <- cbind(subset(object$marker_info[marker, ], select = chr:pos), t(dat))
-  df <- .getRanges(df = df)
-  df <- pivot_longer(data = df, cols = -(chr:pos))
+    scale_breaks <- attributes(object$dosage)$scale_breaks
+    scale_labels <- attributes(object$dosage)$scale_labels
+  }  
+  df <- subset(df, subset = name %in% sample_lables)
   df$value <- factor(df$value, levels = scale_breaks)
-  df$pos <- factor(df$pos)
+  df$name <- factor(df$name, levels = sample_lables)
   
   if(direction == "v"){
-    df$name <- factor(df$name, levels = sample_lables)
-    p <- ggplot(df, aes(x = name, y = pos, fill = value)) +
-      facet_wrap(facets = ~ chr, nrow = 1, scales = "free_y")
+    p <- .plotVertical(df = df, 
+                       legend = legend,
+                       scale_breaks = scale_breaks,
+                       scale_labels = scale_labels)
     
   } else {
-    df$name <- factor(df$name, levels = rev(sample_lables))
-    p <- ggplot(df, aes(x = pos, y = name, fill = value)) +
-      facet_wrap(facets = ~ chr, nrow = 1, scales = "free_x")
+    p <- .plotHorizontal(df = df, 
+                         legend = legend,
+                         scale_breaks = scale_breaks,
+                         scale_labels = scale_labels)
   }
   
-  p <- p + geom_tile() +
+  return(p)
+}
+
+.plotVertical <- function(df, legend, scale_breaks, scale_labels){
+  df$xmin <- df$xmax <- as.numeric(df$name)
+  df$xmin <- df$xmin - 0.9
+  df$xmax <- df$xmax - 0.1
+  
+  max_pos <- max(df$end_pos) * 1e-6
+  pow <- as.integer(max_pos / 50)
+  by <- 5 * 2^pow
+  major_breaks <- seq(0, max_pos, by) 
+  major_breaks <- c(major_breaks, max(major_breaks) + by)
+  minor_breaks <- seq(0, max(major_breaks), pow + 1)
+  minor_breaks <- minor_breaks[!minor_breaks %in% major_breaks]
+    
+  p <- ggplot(df) +
+    geom_rect(aes(ymin = start_pos * 1e-6, ymax = end_pos * 1e-6,
+                  xmin = xmin, xmax = xmax, fill = value), 
+              color = "black", size = 0.2) +
+    facet_wrap(facets = ~ chr, nrow = 1, scales = "fixed") +
+    scale_y_reverse(breaks = major_breaks, minor_breaks = minor_breaks) +
+    scale_x_continuous(limits = c(0, 2)) + 
+    scale_fill_viridis_d(name = legend,
+                         breaks = scale_breaks,
+                         labels = scale_labels) +
+    theme(axis.ticks.x = element_blank(),
+          axis.title.x = element_blank(),
+          axis.text.x = element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.grid.major.y = element_line(colour = "gray20", size = 0.2, linetype = 1),
+          panel.grid.minor.y = element_line(colour = "gray50", size = 0.2, linetype = 1),
+          panel.background = element_blank(),
+          strip.background = element_blank(),
+          legend.position = "top",
+          panel.spacing = unit(0, "lines"))
+  p
+  return(p)
+}
+
+.plotHorizontal <- function(df, legend, scale_breaks, scale_labels){
+  df$ymin <- df$ymax <- as.numeric(df$name)
+  df$ymin <- df$ymin - 1
+  
+  p <- ggplot(df) +
+    geom_rect(aes(xmin = start_pos * 1e-6, xmax = end_pos * 1e-6,
+                  ymin = ymin, ymax = ymax, fill = value)) +
+    facet_grid(facets = name ~ chr, scales = "free", switch = "y") +
     scale_fill_viridis_d(name = legend,
                          breaks = scale_breaks,
                          labels = scale_labels) +
     theme(axis.ticks = element_blank(),
           axis.title = element_blank(),
-          axis.text.x = element_blank(),
+          axis.text = element_blank(),
           panel.grid = element_blank(),
           panel.background = element_blank(),
           strip.background = element_blank(),
+          strip.text.y.left = element_text(angle = 0), 
           legend.position = "top",
           panel.spacing = unit(0, "lines"))
-}
-
-.getRanges <- function(df){
-  xo <- apply(X = subset(df, select = -(chr:pos)), MARGIN = 2, diff)
-  xo_i <- apply(X = xo, MARGIN = 2, function(x){x != 0})
-  chr_boundary <- diff(as.numeric(factor(df$chr))) != 0
-  blocks <- xo_i | chr_boundary
-  out <- lapply(X = seq_len(ncol(blocks)), function(i){
-    blocks_i <- which(blocks[, i])
-    blocks_df <- data.frame(start = c(0, ))
-  })
+  
+  return(p)
 }
