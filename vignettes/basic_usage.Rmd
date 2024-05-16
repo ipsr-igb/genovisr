@@ -104,8 +104,21 @@ visualized using a variety of data visualization functions provided by the
 genovisr package.
 
 ## Classical graphical genotype
-```{r}
+Classical graphical genotype is a representation of genotypes by colored tiles 
+to indicate which genomic region has which genomic segment descended from which
+parent. Therefore, the word "genotype" means descended "haplotype" in this 
+context nowadays. The getRanges() function summarizes breakpoints of haplotypes
+and dosages in the given genomes.
 
+```{r}
+obj <- getRanges(object = obj)
+```
+
+The plotGraphGeno() function visializes haplotyes and dosages in a graphical 
+representation based on the obtained breakpoint information. 
+
+```{r}
+plotGraphGeno(object = obj)
 ```
 
 
