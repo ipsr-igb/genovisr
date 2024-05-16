@@ -25,7 +25,7 @@ simGenovis <- function(n_sample = 10,
   geno4hap <- .simGeno4Hap(n_haplotype = n_haplotype,
                            n_marker = n_marker,
                            n_chr = n_chr)
-  
+
   # Simulate halpotypes of samples
   sample_hap <- .simHap(n_haplotype = n_haplotype,
                         n_marker = n_marker,
@@ -33,10 +33,10 @@ simGenovis <- function(n_sample = 10,
                         n_sample = n_sample,
                         n_ploidy = n_ploidy,
                         chr_len = chr_len)
-  
+
   attributes(sample_hap)$scale_breaks <- seq_len(n_haplotype)
   attributes(sample_hap)$scale_labels <- paste0("Hap", seq_len(n_haplotype))
-  
+
   # Get genotypes of samples based on the simulated haplotypes
   sample_geno <- apply(X = sample_hap,
                        MARGIN = 2,
@@ -44,24 +44,27 @@ simGenovis <- function(n_sample = 10,
                        geno4hap = geno4hap,
                        n_ploidy = n_ploidy,
                        n_haplotype = n_haplotype)
-  
+
   # Calculate dosages at markers in samples if the number of haplotypes is 2.
   if(n_haplotype == 2){
     sample_ds <- apply(X = sample_hap - 1,
                        MARGIN = c(2, 3),
                        FUN = sum)
-    
+
+    attributes(sample_ds)$scale_breaks <- seq(0, n_ploidy)
+    attributes(sample_ds)$scale_labels <- paste0("Plex", seq(0, n_ploidy))
+
   } else {
     sample_ds <- NULL
   }
-  
+
   # Generate marker information.
   chr <- rep(x = seq_len(n_chr), each = n_marker)
   pos <- sapply(seq_len(n_chr), function(i){
     return(sort(sample(x = seq_len(chr_len[i] * 1e6), size = n_marker)))
   })
   pos <- as.vector(pos)
-  
+
   # Organize an output as a genovis class object.
   out <- list(marker_info = data.frame(id = paste(chr, pos, sep = "_"),
                                        chr = chr,
@@ -74,10 +77,10 @@ simGenovis <- function(n_sample = 10,
               genotype = t(sample_geno),
               haplotype = sample_hap,
               dosage = sample_ds)
-  
+
   # Set the genovis class to the output.
   class(out) <- c(class(out), "genovis")
-  
+
   # return the genovis class object.
   return(out)
 }
@@ -123,7 +126,7 @@ simGenovis <- function(n_sample = 10,
       tmp <- sample(x = seq_len(n_haplotype), size = 1)
       if(is.null(last)){
         break
-        
+
       } else {
         check <- last != tmp
         if(check){
@@ -137,7 +140,7 @@ simGenovis <- function(n_sample = 10,
   hap_block <- cbind(head(x = xo_pos, n = -1),
                      tail(x = xo_pos, n = -1),
                      hap)
-  
+
   out <- apply(X = hap_block,
                MARGIN = 1,
                FUN = function(x)rep(x[3], x[2] - x[1]))

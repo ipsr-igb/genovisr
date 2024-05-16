@@ -7,7 +7,11 @@
 plotGraphGeno <- function(object,
                           data = "haplotype",
                           sample = NULL,
-                          direction = "h"){
+                          direction = "h",
+                          width = 0.1){
+  if(is.null(object$ranges)){
+    stop('Run getRanges() to prepare data to plot graphical genotypes.')
+  }
   if(is.null(sample)){
     sample <- rep(TRUE, nrow(object$sample_info))
 
@@ -55,7 +59,8 @@ plotGraphGeno <- function(object,
     p <- .plotVertical(df = df,
                        legend = legend,
                        scale_breaks = scale_breaks,
-                       scale_labels = scale_labels)
+                       scale_labels = scale_labels,
+                       width = width)
 
   } else {
     p <- .plotHorizontal(df = df,
@@ -67,10 +72,11 @@ plotGraphGeno <- function(object,
   return(p)
 }
 
-.plotVertical <- function(df, legend, scale_breaks, scale_labels){
-  df$xmin <- df$xmax <- as.numeric(df$name)
-  df$xmin <- df$xmin - 0.9
-  df$xmax <- df$xmax - 0.1
+.plotVertical <- function(df, legend, scale_breaks, scale_labels, width){
+  df$xmin <- df$xmax <- plot_xmax <- as.numeric(df$name)
+  df$xmin <- df$xmin - 1 + width
+  df$xmax <- df$xmax - width
+  plot_xmax <- max(plot_xmax)
 
   max_pos <- max(df$end_pos) * 1e-6
   pow <- as.integer(max_pos / 50)
@@ -86,12 +92,13 @@ plotGraphGeno <- function(object,
               color = "black", size = 0.2) +
     facet_wrap(facets = ~ chr, nrow = 1, scales = "fixed") +
     scale_y_reverse(breaks = major_breaks, minor_breaks = minor_breaks) +
-    scale_x_continuous(limits = c(0, 2)) +
+    scale_x_continuous(limits = c(0, plot_xmax), position = "top") +
     scale_fill_viridis_d(name = legend,
                          breaks = scale_breaks,
                          labels = scale_labels) +
+    ylab("Physical position (Mb)") +
+    xlab("Chromosome") +
     theme(axis.ticks.x = element_blank(),
-          axis.title.x = element_blank(),
           axis.text.x = element_blank(),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
@@ -99,9 +106,9 @@ plotGraphGeno <- function(object,
           panel.grid.minor.y = element_line(colour = "gray50", size = 0.2, linetype = 1),
           panel.background = element_blank(),
           strip.background = element_blank(),
+          strip.text.x.top = element_text(vjust = -2),
           legend.position = "top",
           panel.spacing = unit(0, "lines"))
-  p
   return(p)
 }
 
@@ -116,12 +123,13 @@ plotGraphGeno <- function(object,
     scale_fill_viridis_d(name = legend,
                          breaks = scale_breaks,
                          labels = scale_labels) +
+    scale_x_continuous(position = "top") +
+    ylab("Physical position (Mb)") +
+    xlab("Chromosome") +
     theme(axis.ticks = element_blank(),
-          axis.title = element_blank(),
           axis.text = element_blank(),
           panel.grid = element_blank(),
           panel.background = element_blank(),
-          panel.spacing = unit(0.1, "lines"),
           panel.border = element_rect(colour = "gray15",
                                       fill = NA,
                                       linewidth = 1),

@@ -111,15 +111,18 @@ context nowadays. The getRanges() function summarizes breakpoints of haplotypes
 and dosages in the given genomes.
 
 ```{r}
-obj <- getRanges(object = obj)
+object <- getRanges(object = object)
 ```
 
 The plotGraphGeno() function visializes haplotyes and dosages in a graphical 
 representation based on the obtained breakpoint information. 
 
 ```{r}
-plotGraphGeno(object = obj)
+plotGraphGeno(object = object, direction = "h", data = "dosage", sample = 1:10, width = 0.1)
 ```
 
+```{r}
+plotGraphGeno(object = object, direction = "v", data = "dosage", sample = 1, width = 0.1)
+```
 
 ## 
