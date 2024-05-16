@@ -11,41 +11,41 @@ plotGraphGeno <- function(object,
                           direction = "h"){
   if(is.null(sample)){
     sample <- rep(TRUE, nrow(object$sample_info))
-    
+
   } else {
     if(is.character(sample)){
       sample <- object$sample_info$id %in% sample
-      
+
     } else if(is.character(sample)){
       sample <- object$sample_info$id %in% sample
-      
+
     } else if(is.numeric(sample)){
       sample <- seq_along(object$sample_info$id) %in% sample
     }
   }
-  
+
   if(direction == "v" & sum(sample) > 1){
     message("When 'v' was specified to 'direction', ",
             "a graphical genotype plot for only one sample can be drawn.")
     message("The first sample was chosen for plotting.")
     sample[-which(sample)[1]] <- FALSE
   }
-  
+
   if(is.null(marker)){
     marker <- rep(TRUE, nrow(object$marker_info))
-    
+
   } else {
     if(is.character(marker)){
       marker <- object$marker_info$id %in% marker
-      
+
     } else if(is.character(marker)){
       marker <- object$marker_info$id %in% marker
-      
+
     } else if(is.numeric(marker)){
       marker <- seq_along(object$marker_info$id) %in% marker
     }
   }
-  
+
   data <- match.arg(arg = data, choices = c("genotype", "haplotype", "dosage"))
   if(data == "genotype"){
     dat <- object$genotype[sample, marker]
@@ -54,7 +54,7 @@ plotGraphGeno <- function(object,
     sample_lables <- rownames(dat)
     scale_breaks <- 0:2
     scale_labels <- c("Ref", "Het", "Alt")
-    
+
   } else if(data == "haplotype"){
     dat <- object$haplotype[, sample, marker]
     n_hap <- dim(dat)[1]
@@ -66,7 +66,7 @@ plotGraphGeno <- function(object,
     sample_lables <- rownames(dat)
     scale_breaks <- attributes(object$haplotype)$scale_breaks
     scale_labels <- attributes(object$haplotype)$scale_labels
-    
+
   } else if(data == "dosage"){
     dat <- object$dosage[sample, marker]
     dosage_levels <- sort(unique(as.vector(dat)))
@@ -76,36 +76,43 @@ plotGraphGeno <- function(object,
     scale_breaks <- dosage_levels
     scale_labels <- paste0("Plex", dosage_levels)
   }
-  
+
   df <- cbind(subset(object$marker_info[marker, ], select = chr:pos), t(dat))
-  df <- .getRanges(df = df)
+  # df <- .getRanges(df = df)
   df <- pivot_longer(data = df, cols = -(chr:pos))
   df$value <- factor(df$value, levels = scale_breaks)
   df$pos <- factor(df$pos)
-  
+  df$y <- "y"
+  df$name <- factor(df$name, levels = sample_lables)
+
   if(direction == "v"){
-    df$name <- factor(df$name, levels = sample_lables)
     p <- ggplot(df, aes(x = name, y = pos, fill = value)) +
       facet_wrap(facets = ~ chr, nrow = 1, scales = "free_y")
-    
+
   } else {
-    df$name <- factor(df$name, levels = rev(sample_lables))
-    p <- ggplot(df, aes(x = pos, y = name, fill = value)) +
-      facet_wrap(facets = ~ chr, nrow = 1, scales = "free_x")
+    p <- ggplot(df, aes(x = pos, y = y, fill = value)) +
+      facet_grid(rows = vars(name), cols = vars(chr),
+                 scales = "free_x", switch = "y") +
+      ylab("")
   }
-  
+
   p <- p + geom_tile() +
     scale_fill_viridis_d(name = legend,
                          breaks = scale_breaks,
                          labels = scale_labels) +
     theme(axis.ticks = element_blank(),
           axis.title = element_blank(),
-          axis.text.x = element_blank(),
+          axis.text = element_blank(),
           panel.grid = element_blank(),
           panel.background = element_blank(),
+          panel.spacing = unit(0.1, "lines"),
+          panel.border = element_rect(colour = "gray15",
+                                      fill = NA,
+                                      linewidth = 1),
           strip.background = element_blank(),
-          legend.position = "top",
-          panel.spacing = unit(0, "lines"))
+          strip.text.y.left = element_text(angle = 360),
+          legend.position = "top")
+  print(p)
 }
 
 .getRanges <- function(df){

@@ -27,7 +27,7 @@ library(genovisr)
 # Genovis class object
 Create dummy data to walk through the package with.
 ```{r}
-obj <- simGenovis()
+object <- simGenovis()
 ```
 
 ### Marker information
@@ -37,7 +37,7 @@ The `id` column shows marker IDs that have been created by concatenating the
 chromosome IDs and physical positions of markers.
 ```{r}
 # Marker information
-head(obj$marker_info)
+head(object$marker_info)
 ```
 
 
@@ -48,7 +48,7 @@ section below, this slot also contains the `pop` column to indicate which
 populations the samples belong to.
 ```{r}
 # Sample information
-head(obj$sample_info)
+head(object$sample_info)
 ```
 
 
@@ -58,7 +58,7 @@ the genotype slot as an N x M matrix, where N and M are the number of samples an
 markers, respectively.
 ```{r}
 # Genotype data
-obj$genotype[1:5, 1:5]
+object$genotype[1:5, 1:5]
 ```
 
 
@@ -68,7 +68,7 @@ as a P x N x M array, where P, N, and M are the number of ploidy, samples, and
 markers.
 ```{r}
 # Haplotype data
-obj$haplotype[, 1:5, 1:5]
+object$haplotype[, 1:5, 1:5]
 ```
 
 The dosage slot stores dosage data calculated from the haplotype data. The 
@@ -78,7 +78,7 @@ The integer of the `[i,j]` element of the dosage data matrix indicates the numbe
 of the Hap2 allele at the `j`th marker of the `i`th sample.
 ```{r}
 # Dosage data
-obj$dosage[1:5, 1:5]
+object$dosage[1:5, 1:5]
 ```
 
 
@@ -93,8 +93,8 @@ of genotype markers based on allelic read counts using a hidden Markov model. Th
 from a given GDS file. If the GDS file contains haplotype and dosage information,
  these data are also included in the output genovis class object.
 
-```{r}
-obj <- gbscleanr2genovis(gds_fn = "/path/to/your/gds_file.gds")
+```{r eval=FALSE}
+object <- gbscleanr2genovis(gds_fn = "/path/to/your/gds_file.gds")
 ```
 
 
