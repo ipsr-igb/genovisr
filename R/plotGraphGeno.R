@@ -1,5 +1,5 @@
 #'
-#'
+#' @export
 #' @import ggplot2
 #' @importFrom tidyr pivot_longer
 #'
@@ -60,6 +60,7 @@ plotGraphGeno <- function(object,
                        legend = legend,
                        scale_breaks = scale_breaks,
                        scale_labels = scale_labels,
+                       sample_name = object$sample_info$id[sample],
                        width = width)
 
   } else {
@@ -72,7 +73,8 @@ plotGraphGeno <- function(object,
   return(p)
 }
 
-.plotVertical <- function(df, legend, scale_breaks, scale_labels, width){
+.plotVertical <- function(df, legend, scale_breaks, scale_labels,
+                          sample_name, width){
   df$xmin <- df$xmax <- plot_xmax <- as.numeric(df$name)
   df$xmin <- df$xmin - 1 + width
   df$xmax <- df$xmax - width
@@ -86,7 +88,8 @@ plotGraphGeno <- function(object,
   minor_breaks <- seq(0, max(major_breaks), pow + 1)
   minor_breaks <- minor_breaks[!minor_breaks %in% major_breaks]
 
-  p <- ggplot(df) +
+  p <- ggplot(df, aes(text = paste('</br>Start pos (bp): ', start_pos,
+                                   '</br>End pos (bp): ', end_pos))) +
     geom_rect(aes(ymin = start_pos * 1e-6, ymax = end_pos * 1e-6,
                   xmin = xmin, xmax = xmax, fill = value),
               color = "black", size = 0.2) +
@@ -96,6 +99,7 @@ plotGraphGeno <- function(object,
     scale_fill_viridis_d(name = legend,
                          breaks = scale_breaks,
                          labels = scale_labels) +
+    labs(title = sample_name) +
     ylab("Physical position (Mb)") +
     xlab("Chromosome") +
     theme(axis.ticks.x = element_blank(),
@@ -116,7 +120,8 @@ plotGraphGeno <- function(object,
   df$ymin <- df$ymax <- as.numeric(df$name)
   df$ymin <- df$ymin - 1
 
-  p <- ggplot(df) +
+  p <- ggplot(df, aes(text = paste('</br>Start pos (bp): ', start_pos,
+                                   '</br>End pos (bp): ', end_pos))) +
     geom_rect(aes(xmin = start_pos * 1e-6, xmax = end_pos * 1e-6,
                   ymin = ymin, ymax = ymax, fill = value)) +
     facet_grid(facets = name ~ chr, scales = "free", switch = "y") +

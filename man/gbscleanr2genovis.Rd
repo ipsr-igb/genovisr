@@ -14,8 +14,6 @@ information stored in the input GDS file should be loaded to apply the
 filtering on markers and samples. See \code{\link[GBScleanR:loadGDS]{GBScleanR::loadGDS()}} and
 \code{\link[GBScleanR:closeGDS]{GBScleanR::closeGDS()}}.}
 
-\item{ploidy}{Not implemented yet.}
-
 \item{verbose}{A logical value to indicate whether to show messages from
 the function.}
 }

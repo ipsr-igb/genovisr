@@ -1,32 +1,32 @@
 #'
 #'
 #'
-#'
+#' @export
 #'
 #'
 
-getRanges <- function(object, marker = NULL, 
+getRanges <- function(object, marker = NULL,
                       data = c("haplotype", "dosage")){
-  
+
   if(is.null(marker)){
     marker <- rep(TRUE, nrow(object$marker_info))
-    
+
   } else {
     if(is.character(marker)){
       marker <- object$marker_info$id %in% marker
-      
+
     } else if(is.character(marker)){
       marker <- object$marker_info$id %in% marker
-      
+
     } else if(is.numeric(marker)){
       marker <- seq_along(object$marker_info$id) %in% marker
     }
   }
-  
+
   data <- match.arg(arg = data,
                     choices = c("haplotype", "dosage"),
                     several.ok = TRUE)
-  
+
   object$ranges <- NULL
   if("haplotype" %in% data){
     out <- .getRangesHaplotype(object = object, marker = marker)
@@ -68,7 +68,7 @@ getRanges <- function(object, marker = NULL,
     blocks_s <- c(0, blocks_i) + 1
     blocks_e <- c(blocks_i, nrow(df))
     blocks_df <- data.frame(name = colnames(df)[i + 2],
-                            start_index = blocks_s, 
+                            start_index = blocks_s,
                             end_index = blocks_e,
                             chr = df$chr[blocks_e],
                             start_pos = df$pos[blocks_s],
