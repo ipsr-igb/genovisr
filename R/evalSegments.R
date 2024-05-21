@@ -5,8 +5,11 @@
 #'
 #'
 
-getRanges <- function(object, marker = NULL,
+evalSegments <- function(object, marker = NULL,
                       data = c("haplotype", "dosage")){
+  if(!inherits(x = object, what = "genovis")){
+    stop("The input object should be a genovis class object.")
+  }
 
   if(is.null(marker)){
     marker <- rep(TRUE, nrow(object$marker_info))
@@ -27,38 +30,38 @@ getRanges <- function(object, marker = NULL,
                     choices = c("haplotype", "dosage"),
                     several.ok = TRUE)
 
-  object$ranges <- NULL
+  object$segments <- NULL
   if("haplotype" %in% data){
-    out <- .getRangesHaplotype(object = object, marker = marker)
-    object$ranges <- c(object$ranges, list(haplotype = out))
+    out <- .getSegmetsHaplotype(object = object, marker = marker)
+    object$segments <- c(object$segments, list(haplotype = out))
   }
   if("dosage" %in% data){
-    out <- .getRangesDosage(object = object, marker = marker)
-    object$ranges <- c(object$ranges, list(dosage = out))
+    out <- .getSegmetsDosage(object = object, marker = marker)
+    object$segments <- c(object$segments, list(dosage = out))
   }
   return(object)
 }
 
-.getRangesHaplotype <- function(object, marker){
+.getSegmetsHaplotype <- function(object, marker){
   dat <- object$haplotype[,, marker]
   n_hap <- dim(dat)[1]
   dat <- apply(X = dat, MARGIN = 3, c)
   rownames(dat) <- paste(rep(object$sample_info$id, each = n_hap),
                          paste0("hap", seq_len(n_hap)), sep = "_")
   df <- cbind(subset(object$marker_info[marker, ], select = chr:pos), t(dat))
-  out <- .getRangesEngine(df = df)
+  out <- .getSegmetsEngine(df = df)
   return(out)
 }
 
-.getRangesDosage <- function(object, marker){
+.getSegmetsDosage <- function(object, marker){
   dat <- object$dosage[, marker]
   rownames(dat) <- object$sample_info$id
   df <- cbind(subset(object$marker_info[marker, ], select = chr:pos), t(dat))
-  out <- .getRangesEngine(df = df)
+  out <- .getSegmetsEngine(df = df)
   return(out)
 }
 
-.getRangesEngine <- function(df){
+.getSegmetsEngine <- function(df){
   xo <- apply(X = subset(df, select = -(chr:pos)), MARGIN = 2, diff)
   xo_i <- apply(X = xo, MARGIN = 2, function(x){x != 0})
   chr_boundary <- diff(as.numeric(factor(df$chr))) != 0

@@ -9,8 +9,12 @@ plotGraphGeno <- function(object,
                           sample = NULL,
                           direction = "h",
                           width = 0.1){
-  if(is.null(object$ranges)){
-    stop('Run getRanges() to prepare data to plot graphical genotypes.')
+  if(!inherits(x = object, what = "genovis")){
+    stop("The input object should be a genovis class object.")
+  }
+  
+  if(is.null(object$segments)){
+    stop('Run evalSegments() to prepare data to plot graphical genotypes.')
   }
   if(is.null(sample)){
     sample <- rep(TRUE, nrow(object$sample_info))
@@ -36,7 +40,7 @@ plotGraphGeno <- function(object,
 
   data <- match.arg(arg = data, choices = c("haplotype", "dosage"))
   if(data == "haplotype"){
-    df <- object$ranges$haplotype
+    df <- object$segments$haplotype
     n_hap <- dim(object$haplotype)[1]
     sample_lables <- paste(rep(object$sample_info$id[sample], each = n_hap),
                            paste0("hap", seq_len(n_hap)), sep = "_")
@@ -45,7 +49,7 @@ plotGraphGeno <- function(object,
     scale_labels <- attributes(object$haplotype)$scale_labels
 
   } else if(data == "dosage"){
-    df <- object$ranges$dosage
+    df <- object$segments$dosage
     sample_lables <- object$sample_info$id[sample]
     legend <- "Dosage"
     scale_breaks <- attributes(object$dosage)$scale_breaks
@@ -124,7 +128,8 @@ plotGraphGeno <- function(object,
                                    '</br>End pos (bp): ', end_pos))) +
     geom_rect(aes(xmin = start_pos * 1e-6, xmax = end_pos * 1e-6,
                   ymin = ymin, ymax = ymax, fill = value)) +
-    facet_grid(facets = name ~ chr, scales = "free", switch = "y") +
+    facet_grid(rows = vars(name), cols = vars(chr),
+               scales = "free", switch = "y") +
     scale_fill_viridis_d(name = legend,
                          breaks = scale_breaks,
                          labels = scale_labels) +
