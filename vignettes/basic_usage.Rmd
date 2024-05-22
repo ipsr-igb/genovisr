@@ -7,16 +7,16 @@ output:
     toc_float: true
 
 vignette: >
-  %\VignetteIndexEntry{Basic uasage of the genovis pakage}
+%\VignetteIndexEntry{Basic uasage of the genovis pakage}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
   
----
-
-```{r, include = FALSE}
+  ---
+  
+  ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
+collapse = TRUE,
+comment = "#>"
 )
 ```
 
@@ -91,7 +91,7 @@ for quick access to the large genotype data and estimate haplotypes and dosages
 of genotype markers based on allelic read counts using a hidden Markov model. The 
 `gbscleanr2genovis()` function extract marker, sample and genotype information
 from a given GDS file. If the GDS file contains haplotype and dosage information,
- these data are also included in the output genovis class object.
+these data are also included in the output genovis class object.
 
 ```{r eval=FALSE}
 object <- gbscleanr2genovis(gds_fn = "/path/to/your/gds_file.gds")
@@ -152,12 +152,12 @@ We can also get the statistical summary of haplotype and dosage information usin
 ref_genome <- readDNAStringSet(filepath = "genome.fa")
 ref_genome <- sort(ref_genome)
 chr_len <- width(ref_genome)
-chr_len <- c(42, 40, 40, 38, 38, 36, 36, 34, 34, 38, 38, 38) * 1e6
+chr_len <- c(42, 40, 40, 38, 38, 38, 38, 40, 36, 38, 38, 38) * 1e6
 object <- statsGeno(object = object, chr_len = chr_len)
 ```
 
 Visualize the obtained statistical summary using `plotStats()`.
 ```{r}
-plotStats(object = object, type = "hist", data = "hap", stats = "prop")
+plotStats(object = object, data = "hap", group = "hap", value = "class")
 ```
 
