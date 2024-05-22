@@ -30,6 +30,8 @@ evalSegments <- function(object, marker = NULL,
                     choices = c("haplotype", "dosage"),
                     several.ok = TRUE)
 
+  options(scipen = 10)
+
   object$segments <- NULL
   if("haplotype" %in% data){
     if(is.null(object$haplotype)){
@@ -86,7 +88,7 @@ evalSegments <- function(object, marker = NULL,
                             chr = df$chr[blocks_e],
                             start_pos = df$pos[blocks_s],
                             end_pos = df$pos[blocks_e],
-                            value = df[c(blocks_i, nrow(df)), i + 2])
+                            class = df[c(blocks_i, nrow(df)), i + 2])
   })
   out <- do.call("rbind", out)
   return(out)

@@ -80,30 +80,87 @@ statsGeno <- function(object, chr_len = NULL){
 }
 
 .evalStats <- function(object, data, chr_len){
+  object$segments[[data]]$sample <- sub("_hap.*", "", object$segments[[data]]$name)
+  out1 <- .evalClassProp(object = object, data = data, chr_len = chr_len)
+  out2 <- .evalBlockLen(object = object, data = data, chr_len = chr_len)
+
+  out <- c(out1, out2)
+  return(out)
+}
+
+.evalClassProp <- function(object, data, chr_len){
   classes <- attributes(object[[data]])$scale_breaks
 
-  hap_class_prop <- aggregate(x = block_len ~ name + value, FUN = sum,
+  # Haploid-wise class ratio summary
+  hap_class_prop <- aggregate(x = block_len ~ name + class, FUN = sum,
                               drop = FALSE, data = object$segments[[data]])
-  hap_class_prop$prop_classes <- hap_class_prop$block_len / sum(chr_len)
-  hap_class_prop$prop_classes[is.na(hap_class_prop$prop_classes)] <- 0
+  hap_class_prop$block_len[is.na(hap_class_prop$block_len)] <- 0
+  hap_total_len <- aggregate(x = block_len ~ name, FUN = sum,
+                             drop = FALSE, data = hap_class_prop)
+  hit <- match(hap_class_prop$name, hap_total_len$name)
+  hap_class_prop$value <- hap_class_prop$block_len / hap_total_len$block_len[hit]
 
-  object$segments[[data]]$sample <- sub("_hap.*", "", object$segments[[data]]$name)
-  sample_class_prop <- aggregate(x = block_len ~ sample + value, FUN = sum,
+  # Sample-wise class ratio summary
+  sample_class_prop <- aggregate(x = block_len ~ sample + class, FUN = sum,
                                  drop = FALSE, data = object$segments[[data]])
-  sample_class_prop$prop_classes <- sample_class_prop$block_len / sum(chr_len * 2)
-  sample_class_prop$prop_classes[is.na(sample_class_prop$prop_classes)] <- 0
+  sample_class_prop$block_len[is.na(sample_class_prop$block_len)] <- 0
+  sample_total_len <- aggregate(x = block_len ~ sample, FUN = sum,
+                                drop = FALSE, data = sample_class_prop)
+  hit <- match(sample_class_prop$sample, sample_total_len$sample)
+  sample_class_prop$value <- sample_class_prop$block_len / sample_total_len$block_len[hit]
+  names(sample_class_prop)[1] <- "name"
 
-  n_hap <- nrow(hap_class_prop) / 2
-  chr_class_prop <- aggregate(x = block_len ~ chr + value, FUN = sum,
+  # Chromosome-wise class ratio summary
+  chr_class_prop <- aggregate(x = block_len ~ chr + class, FUN = sum,
                               drop = FALSE, data = object$segments[[data]])
-  chr_class_prop$prop_classes <- chr_class_prop$block_len / (chr_len * n_hap)
-  chr_class_prop$prop_classes[is.na(chr_class_prop$prop_classes)] <- 0
+  chr_class_prop$block_len[is.na(chr_class_prop$block_len)] <- 0
+  chr_total_len <- aggregate(x = block_len ~ chr, FUN = sum,
+                                drop = FALSE, data = chr_class_prop)
+  hit <- match(chr_class_prop$chr, chr_total_len$chr)
+  chr_class_prop$value <- chr_class_prop$block_len / chr_total_len$block_len[hit]
+  names(chr_class_prop)[1] <- "name"
 
-  genome_class_prop <- aggregate(x = block_len ~ value, FUN = sum,
+  # Whole-genome class ratio summary
+  genome_class_prop <- aggregate(x = block_len ~ class, FUN = sum,
                                  drop = FALSE, data = object$segments[[data]])
-  genome_class_prop$prop_classes <- genome_class_prop$block_len / sum(chr_len * n_hap)
-  genome_class_prop$prop_classes[is.na(genome_class_prop$prop_classes)] <- 0
+  genome_class_prop$block_len[is.na(genome_class_prop$block_len)] <- 0
+  genome_class_prop$value <- genome_class_prop$block_len / sum(genome_class_prop$block_len)
+  genome_class_prop$name <- "genome"
 
+  if(data == "haplotype"){
+    # Haploid-wise recombination frequency summary
+    hap_recomb <- aggregate(x = block_len ~ name + chr, FUN = length,
+                            drop = FALSE, data = object$segments[[data]])
+    hap_recomb$block_len <- hap_recomb$block_len - 1
+    hap_recomb <- aggregate(x = block_len ~ name, FUN = sum,
+                            drop = FALSE, data = hap_recomb)
+    names(hap_recomb) <- c("name", "value")
+
+    # Sample-wise recombination frequency summary
+    sample_recomb <- aggregate(x = block_len ~ name + chr + sample, FUN = length,
+                               drop = FALSE, data = object$segments[[data]])
+    sample_recomb$block_len <- sample_recomb$block_len - 1
+    sample_recomb <- aggregate(x = block_len ~ sample, FUN = sum,
+                               drop = FALSE, data = sample_recomb)
+    names(sample_recomb) <- c("name", "value")
+
+    # Chromosome-wise recombination frequency summary
+    chr_recomb <- aggregate(x = block_len ~ sample + chr, FUN = length,
+                            drop = FALSE, data = object$segments[[data]])
+    chr_recomb$block_len <- chr_recomb$block_len - 1
+    chr_recomb <- aggregate(x = block_len ~ chr, FUN = sum,
+                            drop = FALSE, data = chr_recomb)
+    names(chr_recomb) <- c("name", "value")
+  }
+
+  out <- list(hap_class = hap_class_prop, sample_class = sample_class_prop,
+              chr_class = chr_class_prop, genome_class = genome_class_prop,
+              hap_recomb = hap_recomb, sample_recomb = sample_recomb,
+              chr_recomb = chr_recomb)
+  return(out)
+}
+
+.evalBlockLen <- function(object, data, chr_len){
   hap_block <- rbind(data.frame(stats = "mean",
                                 aggregate(x = block_len ~ name,
                                           FUN = mean,
@@ -154,6 +211,7 @@ statsGeno <- function(object, chr_len = NULL){
                                           na.rm = TRUE,
                                           drop = FALSE,
                                           data = object$segments[[data]])))
+  names(hap_block)[3] <- "value"
 
   sample_block <- rbind(data.frame(stats = "mean",
                                    aggregate(x = block_len ~ sample,
@@ -205,7 +263,7 @@ statsGeno <- function(object, chr_len = NULL){
                                              na.rm = TRUE,
                                              drop = FALSE,
                                              data = object$segments[[data]])))
-  names(sample_block)[3] <- "value"
+  names(sample_block)[2:3] <- c("name", "value")
 
   chr_block <- rbind(data.frame(stats = "mean",
                                 aggregate(x = block_len ~ chr,
@@ -257,9 +315,9 @@ statsGeno <- function(object, chr_len = NULL){
                                           na.rm = TRUE,
                                           drop = FALSE,
                                           data = object$segments[[data]])))
-  names(chr_block)[3] <- "value"
+  names(chr_block)[2:3] <- c("name", "value")
 
-  object$segments[[data]]$all <- 1
+  object$segments[[data]]$all <- "genome"
   genome_block <- rbind(data.frame(stats = "mean",
                                    aggregate(x = block_len ~ all,
                                              FUN = mean,
@@ -310,10 +368,7 @@ statsGeno <- function(object, chr_len = NULL){
                                              na.rm = TRUE,
                                              drop = FALSE,
                                              data = object$segments[[data]])))
-
-  out <- list(hap_class = hap_class_prop, sample_class = sample_class_prop,
-              chr_class = chr_class_prop, genome_class = genome_class_prop,
-              hap_block = hap_block, sample_block = sample_block,
+  names(genome_block)[2:3] <- c("name", "value")
+  out <- list(hap_block = hap_block, sample_block = sample_block,
               chr_block = chr_block, genome_block = genome_block)
-  return(out)
 }
