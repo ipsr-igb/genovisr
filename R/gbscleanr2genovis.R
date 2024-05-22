@@ -5,16 +5,13 @@
 #' markers. The obtained information is then organized as a genovis class
 #' object that can be handled by the functions in the genovisr package.
 #'
-#' @param gds_fn A string to specify a path to the input GDS file.
-#' @param gbscleanr_filter A logical value to indicate whether the filtering
-#' information stored in the input GDS file should be loaded to apply the
-#' filtering on markers and samples. See [GBScleanR::loadGDS()] and
-#' [GBScleanR::closeGDS()].
+#' @param gbsr A GbsrGenotypeData object. See [GBScleanR::gbsrVCF2GDS()] and
+#' [GBScleanR::loadGDS()].
 #' @param verbose A logical value to indicate whether to show messages from
 #' the function.
 #'
 #' @importClassesFrom GBScleanR GbsrGenotypeData
-#' @importMethodsFrom GBScleanR getGenotype getHaplotype getRead
+#' @importMethodsFrom GBScleanR getGenotype getHaplotype getRead getAllele
 #' @importFrom gdsfmt exist.gdsn
 #' @importFrom GBScleanR loadGDS
 #'
@@ -25,32 +22,23 @@
 #'
 #' @export
 #'
-gbscleanr2genovis <- function(gds_fn,
-                              gbscleanr_filter = TRUE,
-                              ploidy = 2,
+gbscleanr2genovis <- function(gbsr,
                               verbose = TRUE) {
   if(verbose){ message('Loading GDS file.') }
 
   # Check if the input is a string indicating a file path
-  if(!is.character(gds_fn)){
+  if(!inherits(x = gbsr, what = "GbsrGenotypeData")){
     stop("A path to a GDS file should be specified to 'gds_fn'.")
   }
 
-  # Load the input GDS file using the loadGDS() function
-  # of the GBScleanR package.
-  gds <- loadGDS(x = gds_fn,
-                 load_filter = gbscleanr_filter,
-                 ploidy = ploidy,
-                 verbose = verbose)
-
   # Pull out data required to build a genovis class object.
   # Get marker allele information.
-  allele <- getAllele(object = gds)
+  allele <- getAllele(object = gbsr)
   allele <- strsplit(x = allele, split = ",")
   allele <- do.call("rbind", allele)
 
   # Confirm whether corrected genotype data is available or not.
-  if(exist.gdsn(node = gds$root, path = "annotation/format/CGT")){
+  if(exist.gdsn(node = gbsr$root, path = "annotation/format/CGT")){
     genotype_node <- "cor"
 
   } else {
@@ -58,28 +46,31 @@ gbscleanr2genovis <- function(gds_fn,
   }
 
   # Organize marker information and genotype information in an output object.
-  chr <- getChromosome(object = gds)
-  pos <- getPosition(object = gds)
+  chr <- getChromosome(object = gbsr)
+  pos <- getPosition(object = gbsr)
   out <- list(marker_info = data.frame(id = paste(chr, pos, sep = "_"),
                                        chr = factor(chr),
                                        pos = as.integer(pos),
                                        ref_allele = allele[, 1],
                                        alt_allele = allele[, 2]),
-              sample_info = data.frame(id = getSamID(object = gds)),
-              genotype = getGenotype(object = gds,
+              sample_info = data.frame(id = getSamID(object = gbsr)),
+              genotype = getGenotype(object = gbsr,
                                      node = genotype_node,
                                      parents = TRUE),
               haplotype = NULL,
               dosage = NULL)
 
   # Add haplotype information if available.
-  if(exist.gdsn(node = gds$root, path = "annotation/format/HAP")){
-    out$haplotype  <- getHaplotype(object = gds, parents = TRUE)
-
+  if(exist.gdsn(node = gbsr$root, path = "annotation/format/HAP")){
+    out$haplotype <- .getHaplotypeFromGBSR(gbsr = gbsr)
+  } else {
+    message("Haplotype information is not available for the given dataset.")
   }
 
-  if(exist.gdsn(node = gds$root, path = "annotation/format/DS")){
-    out$haplotype  <- getGenotype(object = gds, node = "dosage", parents = TRUE)
+  if(exist.gdsn(node = gbsr$root, path = "annotation/format/DS")){
+    out$dosage <- .getDosageFromGBSR(gbsr = gbsr)
+  } else {
+    message("Dosage information is not available for the given dataset.")
   }
 
   # Set the genovis class to the output.
@@ -89,3 +80,77 @@ gbscleanr2genovis <- function(gds_fn,
   return(out)
 }
 
+.getHaplotypeFromGBSR <- function(gbsr){
+  parents <- getParents(object = gbsr, verbose = FALSE)
+
+  if(is.null(parents)){
+    hap  <- getHaplotype(object = gbsr, parents = FALSE)
+    max_hap <- max(hap, na.rm = TRUE)
+    if(max_hap == 2){
+      scale_breaks <- seq_len(length.out = 2L)
+      scale_labels <- paste0("Hap", seq_len(length.out = 2L))
+
+    } else {
+      stop("The number of haplotypes in the data is ", max_hap, ".",
+           "\nWhen the number of haplotypes is more than two, ",
+           "GenovisR needs parental sample information to properly process",
+           " the given genotype and haplotype data.",
+           "\nPlease set parental samples using setParents().")
+    }
+
+  } else {
+    p_hap <- getHaplotype(object = gbsr, parents = "only")
+    p_hap <- p_hap[,, 1]
+    p_hap <- unique(p_hap)
+    n_p_hap <- nrow(p_hap)
+    n_p <- ncol(p_hap)
+    n_haplotype <- length(unique(as.vector(p_hap)))
+    scale_breaks <- seq_len(n_haplotype)
+
+    p_id <- parents$sampleID[match(seq_len(n_p), parents$memberID)]
+    rep_p_id <- rep(x = p_id, each = n_p_hap)
+    if(n_p_hap == 1){
+      scale_labels <- rep_p_id
+
+    } else {
+      scale_labels <- paste0(rep_p_id, "_hap", seq_len(n_p_hap))
+    }
+  }
+
+  out <- getHaplotype(object = gbsr, parents = "FALSE")
+  attributes(out)$scale_breaks <- scale_breaks
+  attributes(out)$scale_labels <- scale_labels
+  return(out)
+}
+
+.getDosageFromGBSR <- function(gbsr){
+  parents <- getParents(object = gbsr, verbose = FALSE)
+
+  if(is.null(parents)){
+    hap  <- getHaplotype(object = gbsr, parents = FALSE)
+    n_ploidy <- dim(hap)[1]
+    max_hap <- max(hap, na.rm = TRUE)
+
+  } else {
+    p_hap <- getHaplotype(object = gbsr, parents = "only")
+    n_ploidy <- dim(p_hap)[1]
+    p_hap <- p_hap[,, 1]
+    max_hap <- length(unique(as.vector(p_hap)))
+  }
+
+  if(max_hap == 2){
+    out <- getGenotype(object = gbsr, node = "dosage", parents = "FALSE")
+    attributes(out)$scale_breaks <- seq_len(length.out = n_ploidy)
+    attributes(out)$scale_labels <- paste0("Plex", seq(0, n_ploidy))
+
+  } else {
+    message("The number of haplotypes in the data is ", max_hap, ".",
+            "\nDosage information is available only when the number of ",
+            "haplotypes is two.",
+            "The output genovis object will has NULL for ",
+            "the dosage information.")
+    out <- NULL
+  }
+
+  return(out)
+}

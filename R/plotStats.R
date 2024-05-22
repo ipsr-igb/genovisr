@@ -8,7 +8,7 @@ plotStats(object = object,
           sample = 1,
           data = c("haplotype", "dosage"),
           group = c("hapwise", "samplewise", "chrwise", "genome"),
-          stats = c("prop", "block" ), 
+          stats = c("prop", "block" ),
           type = c("histgram", "barplot", "boxplot")){
   if(!inherits(x = object, what = "genovis")){
     stop("The input object should be a genovis class object.")

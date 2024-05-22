@@ -32,12 +32,22 @@ evalSegments <- function(object, marker = NULL,
 
   object$segments <- NULL
   if("haplotype" %in% data){
-    out <- .getSegmetsHaplotype(object = object, marker = marker)
-    object$segments <- c(object$segments, list(haplotype = out))
+    if(is.null(object$haplotype)){
+      message("Haplotype information is not available for the given dataset.")
+
+    } else {
+      out <- .getSegmetsHaplotype(object = object, marker = marker)
+      object$segments <- c(object$segments, list(haplotype = out))
+    }
   }
   if("dosage" %in% data){
-    out <- .getSegmetsDosage(object = object, marker = marker)
-    object$segments <- c(object$segments, list(dosage = out))
+    if(is.null(object$dosage)){
+      message("Dosage information is not available for the given dataset.")
+
+    } else {
+      out <- .getSegmetsDosage(object = object, marker = marker)
+      object$segments <- c(object$segments, list(dosage = out))
+    }
   }
   return(object)
 }

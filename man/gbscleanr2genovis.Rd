@@ -4,15 +4,11 @@
 \alias{gbscleanr2genovis}
 \title{Import markers, genotypes, and haplotypes information from a GDS file}
 \usage{
-gbscleanr2genovis(gds_fn, gbscleanr_filter = TRUE, ploidy = 2, verbose = TRUE)
+gbscleanr2genovis(gbsr, verbose = TRUE)
 }
 \arguments{
-\item{gds_fn}{A string to specify a path to the input GDS file.}
-
-\item{gbscleanr_filter}{A logical value to indicate whether the filtering
-information stored in the input GDS file should be loaded to apply the
-filtering on markers and samples. See \code{\link[GBScleanR:loadGDS]{GBScleanR::loadGDS()}} and
-\code{\link[GBScleanR:closeGDS]{GBScleanR::closeGDS()}}.}
+\item{gbsr}{A GbsrGenotypeData object. See \code{\link[GBScleanR:gbsrVCF2GDS]{GBScleanR::gbsrVCF2GDS()}} and
+\code{\link[GBScleanR:loadGDS]{GBScleanR::loadGDS()}}.}
 
 \item{verbose}{A logical value to indicate whether to show messages from
 the function.}
