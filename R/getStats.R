@@ -4,7 +4,7 @@
 #'
 #' @export
 #'
-plotStats <- function(object = object,
+getStats <- function(object = object,
                       data = c("haplotype", "dosage", "recomb"),
                       group = c("hap", "sample", "chr", "genome"),
                       value = c("class", "segment")){
@@ -32,19 +32,10 @@ plotStats <- function(object = object,
     if(group == "genome"){
       stop("Whole-genome summary for recombination frequency is not available.")
     }
-    df <- object$stats$haplotype[[paste(group, "recomb", sep = "_")]]
-    mean_recomb <- mean(df$value, na.rm = TRUE)
-    median_recomb <- median(df$value, na.rm = TRUE)
-    p <- ggplot(data = df) +
-      geom_bar(mapping = aes(x = name, y = value), fill = "darkgreen",
-               stat = "identity") +
-      geom_hline(yintercept = c(mean_recomb, median_recomb),
-                 color = c("magenta", "blue"), linetype = 1:2) +
-      xlab("") +
-      ylab("Number of recombinations")
+    out <- object$stats$haplotype[[paste(group, "recomb", sep = "_")]]
 
   } else {
-    df <- object$stats[[data]][[paste(group, value, sep = "_")]]
+    out <- object$stats[[data]][[paste(group, value, sep = "_")]]
 
     if(value == "class"){
       if(data == "haplotype"){
@@ -58,27 +49,10 @@ plotStats <- function(object = object,
         scale_labels <- attributes(object$dosage)$scale_labels
       }
 
-      hit <- match(df$class, scale_breaks)
-      df$class <- scale_labels[hit]
+      hit <- match(out$class, scale_breaks)
+      out$class <- scale_labels[hit]
 
-      p <- ggplot(data = df) +
-        geom_bar(mapping = aes(x = name, y = value, fill = class),
-                 stat = "identity") +
-        scale_fill_viridis_d(name = legend) +
-        xlab("") +
-        ylab("Proportion")
-
-    } else if(value == "segment"){
-      p <- ggplot(data = df)  +
-        geom_bar(mapping = aes(x = name, y = value, fill = stats),
-                 stat = "identity") +
-        scale_fill_viridis_d() +
-        facet_grid(rows = vars(stats), scales = "free_y") +
-        xlab("") +
-        ylab("Stats of segment lengths") +
-        theme(legend.position = "none")
     }
   }
-
-  return(p)
+  return(out)
 }

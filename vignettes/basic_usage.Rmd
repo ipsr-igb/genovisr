@@ -152,7 +152,7 @@ We can also get the statistical summary of haplotype and dosage information usin
 ref_genome <- readDNAStringSet(filepath = "genome.fa")
 ref_genome <- sort(ref_genome)
 chr_len <- width(ref_genome)
-chr_len <- c(42, 40, 40, 38, 38, 38, 38, 40, 36, 38, 38, 38) * 1e6
+chr_len <- rep(42, 12) * 1e6
 object <- statsGeno(object = object, chr_len = chr_len)
 ```
 

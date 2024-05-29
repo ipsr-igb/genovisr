@@ -3,6 +3,7 @@
 export(evalSegments)
 export(gbscleanr2genovis)
 export(plotGraphGeno)
+export(plotStats)
 export(simGenovis)
 export(statsGeno)
 import(ggplot2)

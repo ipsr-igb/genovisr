@@ -136,7 +136,6 @@ plotGraphGeno <- function(object,
                scales = "free", switch = "y") +
     scale_fill_viridis_d(name = legend) +
     scale_x_continuous(position = "top") +
-    scale_y_discrete()
     ylab("Physical position (Mb)") +
     xlab("Chromosome") +
     theme(axis.ticks = element_blank(),
