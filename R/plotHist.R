@@ -25,9 +25,10 @@ plotHist <- function(object,
   }
 
   df <- getSegments(object = object, data = data, sample = sample)
+  df$segment_len  <- df$segment_len * 1e-6
 
   p <- ggplot(data = df) +
-    geom_histogram(mapping = aes(x = segment_len * 1e-6), fill = fill,
+    geom_histogram(mapping = aes(x = segment_len), fill = fill,
                    binwidth = binwidth * 1e-6) +
     xlab("Segment length (Mb)") +
     ylab("Count")
