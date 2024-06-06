@@ -1,5 +1,3 @@
-Here is the content for the `README.md` file that you can manually create and use for your GitHub repository:
-
 # genovisr
 
 `genovisr` is an R package designed for visualizing and analyzing genotypic data. It provides comprehensive tools to import, visualize, and summarize genotype, haplotype, and dosage data. The package also includes a Shiny application for interactive data exploration.
