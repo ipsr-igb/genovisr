@@ -90,5 +90,3 @@ We welcome contributions! If you have any suggestions or find any issues, please
 
 This project is licensed under the MIT License.
 ```
-
-Copy the above content into a new file named `README.md` and place it in the root directory of your GitHub repository.
