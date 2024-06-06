@@ -114,9 +114,9 @@ statsGeno <- function(object, chr_len = NULL) {
 #' @param data A character string specifying which data to use, either "haplotype" or "dosage".
 #' @param chr_len A named numeric vector specifying the lengths of each chromosome.
 #' @return A list of class proportions.
-.evalClassProp <- function(object, data, chr_len) {
+.evalClassProp <- function(object, data, chr_len){
   classes <- attributes(object[[data]])$scale_breaks
-
+  
   # Haploid-wise class ratio summary
   hap_class_prop <- aggregate(x = segment_len ~ name + class, FUN = sum,
                               drop = FALSE, data = object$segments[[data]])
@@ -125,7 +125,7 @@ statsGeno <- function(object, chr_len = NULL) {
                              drop = FALSE, data = hap_class_prop)
   hit <- match(hap_class_prop$name, hap_total_len$name)
   hap_class_prop$value <- hap_class_prop$segment_len / hap_total_len$segment_len[hit]
-
+  
   # Sample-wise class ratio summary
   sample_class_prop <- aggregate(x = segment_len ~ sample + class, FUN = sum,
                                  drop = FALSE, data = object$segments[[data]])
@@ -135,7 +135,7 @@ statsGeno <- function(object, chr_len = NULL) {
   hit <- match(sample_class_prop$sample, sample_total_len$sample)
   sample_class_prop$value <- sample_class_prop$segment_len / sample_total_len$segment_len[hit]
   names(sample_class_prop)[1] <- "name"
-
+  
   # Chromosome-wise class ratio summary
   chr_class_prop <- aggregate(x = segment_len ~ chr + class, FUN = sum,
                               drop = FALSE, data = object$segments[[data]])
@@ -145,15 +145,15 @@ statsGeno <- function(object, chr_len = NULL) {
   hit <- match(chr_class_prop$chr, chr_total_len$chr)
   chr_class_prop$value <- chr_class_prop$segment_len / chr_total_len$segment_len[hit]
   names(chr_class_prop)[1] <- "name"
-
+  
   # Whole-genome class ratio summary
   genome_class_prop <- aggregate(x = segment_len ~ class, FUN = sum,
                                  drop = FALSE, data = object$segments[[data]])
   genome_class_prop$segment_len[is.na(genome_class_prop$segment_len)] <- 0
   genome_class_prop$value <- genome_class_prop$segment_len / sum(genome_class_prop$segment_len)
   genome_class_prop$name <- "genome"
-
-  if (data == "haplotype") {
+  
+  if(data == "haplotype"){
     # Haploid-wise recombination frequency summary
     hap_recomb <- aggregate(x = segment_len ~ name + chr, FUN = length,
                             drop = FALSE, data = object$segments[[data]])
@@ -161,7 +161,7 @@ statsGeno <- function(object, chr_len = NULL) {
     hap_recomb <- aggregate(x = segment_len ~ name, FUN = sum,
                             drop = FALSE, data = hap_recomb)
     names(hap_recomb) <- c("name", "value")
-
+    
     # Sample-wise recombination frequency summary
     sample_recomb <- aggregate(x = segment_len ~ name + chr + sample, FUN = length,
                                drop = FALSE, data = object$segments[[data]])
@@ -169,7 +169,7 @@ statsGeno <- function(object, chr_len = NULL) {
     sample_recomb <- aggregate(x = segment_len ~ sample, FUN = sum,
                                drop = FALSE, data = sample_recomb)
     names(sample_recomb) <- c("name", "value")
-
+    
     # Chromosome-wise recombination frequency summary
     chr_recomb <- aggregate(x = segment_len ~ sample + chr, FUN = length,
                             drop = FALSE, data = object$segments[[data]])
@@ -180,7 +180,7 @@ statsGeno <- function(object, chr_len = NULL) {
   } else {
     hap_recomb <- sample_recomb <- chr_recomb <- NULL
   }
-
+  
   out <- list(hap_class = hap_class_prop, sample_class = sample_class_prop,
               chr_class = chr_class_prop, genome_class = genome_class_prop,
               hap_recomb = hap_recomb, sample_recomb = sample_recomb,
@@ -188,82 +188,215 @@ statsGeno <- function(object, chr_len = NULL) {
   return(out)
 }
 
-#' Evaluate Segment Lengths
-#'
-#' @param object A `genovis` class object.
-#' @param data A character string specifying which data to use, either "haplotype" or "dosage".
-#' @param chr_len A named numeric vector specifying the lengths of each chromosome.
-#' @return A list of segment lengths.
-#' Evaluate Block Lengths
-#'
-#' @param object A `genovis` class object.
-#' @param data A character string specifying which data to use, either "haplotype" or "dosage".
-#' @param chr_len A named numeric vector specifying the lengths of each chromosome.
-#' @return A list of evaluated segment lengths.
-.evalBlockLen <- function(object, data, chr_len) {
-  # List of statistics and corresponding functions
-  stats_list <- list(
-    mean = mean,
-    sd = sd,
-    var = var,
-    min = min,
-    Q1 = function(x) quantile(x, prob = 0.25, na.rm = TRUE),
-    Q2 = function(x) quantile(x, prob = 0.5, na.rm = TRUE),
-    Q3 = function(x) quantile(x, prob = 0.75, na.rm = TRUE),
-    max = max
-  )
-
-  # Create data frames for hap_segment, sample_segment, chr_segment, and genome_segment
-  hap_segment <- do.call(rbind, lapply(names(stats_list), function(stat) {
-    df <- .create_stat_df(stat, "name", stats_list[[stat]])
-    df$stats <- stat
-    df
-  }))
+.evalBlockLen <- function(object, data, chr_len){
+  hap_segment <- rbind(data.frame(stats = "mean",
+                                  aggregate(x = segment_len ~ name,
+                                            FUN = mean,
+                                            na.rm = TRUE,
+                                            drop = FALSE,
+                                            data = object$segments[[data]])),
+                       data.frame(stats = "sd",
+                                  aggregate(x = segment_len ~ name,
+                                            FUN = sd,
+                                            na.rm = TRUE,
+                                            drop = FALSE,
+                                            data = object$segments[[data]])),
+                       data.frame(stats = "var",
+                                  aggregate(x = segment_len ~ name,
+                                            FUN = var,
+                                            na.rm = TRUE,
+                                            drop = FALSE,
+                                            data = object$segments[[data]])),
+                       data.frame(stats = "min",
+                                  aggregate(x = segment_len ~ name,
+                                            FUN = min,
+                                            na.rm = TRUE,
+                                            drop = FALSE,
+                                            data = object$segments[[data]])),
+                       data.frame(stats = "Q1",
+                                  aggregate(x = segment_len ~ name,
+                                            FUN = quantile,
+                                            prob = 0.25,
+                                            drop = FALSE,
+                                            data = object$segments[[data]])),
+                       data.frame(stats = "Q2",
+                                  aggregate(x = segment_len ~ name,
+                                            FUN = quantile,
+                                            prob = 0.5,
+                                            na.rm = TRUE,
+                                            drop = FALSE,
+                                            data = object$segments[[data]])),
+                       data.frame(stats = "Q3",
+                                  aggregate(x = segment_len ~ name,
+                                            FUN = quantile,
+                                            prob = 0.75,
+                                            na.rm = TRUE,
+                                            drop = FALSE,
+                                            data = object$segments[[data]])),
+                       data.frame(stats = "max",
+                                  aggregate(x = segment_len ~ name,
+                                            FUN = max,
+                                            na.rm = TRUE,
+                                            drop = FALSE,
+                                            data = object$segments[[data]])))
   names(hap_segment)[3] <- "value"
-
-  sample_segment <- do.call(rbind, lapply(names(stats_list), function(stat) {
-    df <- .create_stat_df(stat, "sample", stats_list[[stat]])
-    df$stats <- stat
-    df
-  }))
+  
+  sample_segment <- rbind(data.frame(stats = "mean",
+                                     aggregate(x = segment_len ~ sample,
+                                               FUN = mean,
+                                               na.rm = TRUE,
+                                               drop = FALSE,
+                                               data = object$segments[[data]])),
+                          data.frame(stats = "sd",
+                                     aggregate(x = segment_len ~ sample,
+                                               FUN = sd,
+                                               na.rm = TRUE,
+                                               drop = FALSE,
+                                               data = object$segments[[data]])),
+                          data.frame(stats = "var",
+                                     aggregate(x = segment_len ~ sample,
+                                               FUN = var,
+                                               na.rm = TRUE,
+                                               drop = FALSE,
+                                               data = object$segments[[data]])),
+                          data.frame(stats = "min",
+                                     aggregate(x = segment_len ~ sample,
+                                               FUN = min,
+                                               na.rm = TRUE,
+                                               drop = FALSE,
+                                               data = object$segments[[data]])),
+                          data.frame(stats = "Q1",
+                                     aggregate(x = segment_len ~ sample,
+                                               FUN = quantile,
+                                               prob = 0.25,
+                                               drop = FALSE,
+                                               data = object$segments[[data]])),
+                          data.frame(stats = "Q2",
+                                     aggregate(x = segment_len ~ sample,
+                                               FUN = quantile,
+                                               prob = 0.5,
+                                               na.rm = TRUE,
+                                               drop = FALSE,
+                                               data = object$segments[[data]])),
+                          data.frame(stats = "Q3",
+                                     aggregate(x = segment_len ~ sample,
+                                               FUN = quantile,
+                                               prob = 0.75,
+                                               na.rm = TRUE,
+                                               drop = FALSE,
+                                               data = object$segments[[data]])),
+                          data.frame(stats = "max",
+                                     aggregate(x = segment_len ~ sample,
+                                               FUN = max,
+                                               na.rm = TRUE,
+                                               drop = FALSE,
+                                               data = object$segments[[data]])))
   names(sample_segment)[2:3] <- c("name", "value")
-
-  chr_segment <- do.call(rbind, lapply(names(stats_list), function(stat) {
-    df <- .create_stat_df(stat, "chr", stats_list[[stat]])
-    df$stats <- stat
-    df
-  }))
+  
+  chr_segment <- rbind(data.frame(stats = "mean",
+                                  aggregate(x = segment_len ~ chr,
+                                            FUN = mean,
+                                            na.rm = TRUE,
+                                            drop = FALSE,
+                                            data = object$segments[[data]])),
+                       data.frame(stats = "sd",
+                                  aggregate(x = segment_len ~ chr,
+                                            FUN = sd,
+                                            na.rm = TRUE,
+                                            drop = FALSE,
+                                            data = object$segments[[data]])),
+                       data.frame(stats = "var",
+                                  aggregate(x = segment_len ~ chr,
+                                            FUN = var,
+                                            na.rm = TRUE,
+                                            drop = FALSE,
+                                            data = object$segments[[data]])),
+                       data.frame(stats = "min",
+                                  aggregate(x = segment_len ~ chr,
+                                            FUN = min,
+                                            na.rm = TRUE,
+                                            drop = FALSE,
+                                            data = object$segments[[data]])),
+                       data.frame(stats = "Q1",
+                                  aggregate(x = segment_len ~ chr,
+                                            FUN = quantile,
+                                            prob = 0.25,
+                                            drop = FALSE,
+                                            data = object$segments[[data]])),
+                       data.frame(stats = "Q2",
+                                  aggregate(x = segment_len ~ chr,
+                                            FUN = quantile,
+                                            prob = 0.5,
+                                            na.rm = TRUE,
+                                            drop = FALSE,
+                                            data = object$segments[[data]])),
+                       data.frame(stats = "Q3",
+                                  aggregate(x = segment_len ~ chr,
+                                            FUN = quantile,
+                                            prob = 0.75,
+                                            na.rm = TRUE,
+                                            drop = FALSE,
+                                            data = object$segments[[data]])),
+                       data.frame(stats = "max",
+                                  aggregate(x = segment_len ~ chr,
+                                            FUN = max,
+                                            na.rm = TRUE,
+                                            drop = FALSE,
+                                            data = object$segments[[data]])))
   names(chr_segment)[2:3] <- c("name", "value")
-
+  
   object$segments[[data]]$all <- "genome"
-  genome_segment <- do.call(rbind, lapply(names(stats_list), function(stat) {
-    df <- .create_stat_df(stat, "all", stats_list[[stat]])
-    df$stats <- stat
-    df
-  }))
+  genome_segment <- rbind(data.frame(stats = "mean",
+                                     aggregate(x = segment_len ~ all,
+                                               FUN = mean,
+                                               na.rm = TRUE,
+                                               drop = FALSE,
+                                               data = object$segments[[data]])),
+                          data.frame(stats = "sd",
+                                     aggregate(x = segment_len ~ all,
+                                               FUN = sd,
+                                               na.rm = TRUE,
+                                               drop = FALSE,
+                                               data = object$segments[[data]])),
+                          data.frame(stats = "var",
+                                     aggregate(x = segment_len ~ all,
+                                               FUN = var,
+                                               na.rm = TRUE,
+                                               drop = FALSE,
+                                               data = object$segments[[data]])),
+                          data.frame(stats = "min",
+                                     aggregate(x = segment_len ~ all,
+                                               FUN = min,
+                                               na.rm = TRUE,
+                                               drop = FALSE,
+                                               data = object$segments[[data]])),
+                          data.frame(stats = "Q1",
+                                     aggregate(x = segment_len ~ all,
+                                               FUN = quantile,
+                                               prob = 0.25,
+                                               drop = FALSE,
+                                               data = object$segments[[data]])),
+                          data.frame(stats = "Q2",
+                                     aggregate(x = segment_len ~ all,
+                                               FUN = quantile,
+                                               prob = 0.5,
+                                               na.rm = TRUE,
+                                               drop = FALSE,
+                                               data = object$segments[[data]])),
+                          data.frame(stats = "Q3",
+                                     aggregate(x = segment_len ~ all,
+                                               FUN = quantile,
+                                               prob = 0.75,
+                                               na.rm = TRUE,
+                                               drop = FALSE,
+                                               data = object$segments[[data]])),
+                          data.frame(stats = "max",
+                                     aggregate(x = segment_len ~ all,
+                                               FUN = max,
+                                               na.rm = TRUE,
+                                               drop = FALSE,
+                                               data = object$segments[[data]])))
   names(genome_segment)[2:3] <- c("name", "value")
-
   out <- list(hap_segment = hap_segment, sample_segment = sample_segment,
               chr_segment = chr_segment, genome_segment = genome_segment)
-
-  return(out)
-}
-
-# Function to create a data frame for the given statistic
-.create_stat_df <- function(stat, group_var, fun, prob = NULL) {
-  aggregate_formula <- as.formula(paste("segment_len ~", group_var))
-  if (is.null(prob)) {
-    aggregate(x = aggregate_formula,
-              FUN = fun,
-              na.rm = TRUE,
-              drop = FALSE,
-              data = object$segments[[data]])
-  } else {
-    aggregate(x = aggregate_formula,
-              FUN = quantile,
-              prob = prob,
-              na.rm = TRUE,
-              drop = FALSE,
-              data = object$segments[[data]])
-  }
 }

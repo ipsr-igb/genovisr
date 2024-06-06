@@ -43,11 +43,10 @@ getSegments <- function(object, data = "haplotype", sample = NULL) {
     legend <- "Haplotype"
     scale_breaks <- attributes(object$haplotype)$scale_breaks
     scale_labels <- attributes(object$haplotype)$scale_labels
-  }
-  # Process dosage data if specified
-  else if (data == "dosage") {
+    
+  } else if (data == "dosage") {
     out <- object$segments$dosage
-    sample_labels <- object$sample_info[id][sample]
+    sample_labels <- object$sample_info$id[sample]
     legend <- "Dosage"
     scale_breaks <- attributes(object$dosage)$scale_breaks
     scale_labels <- attributes(object$dosage)$scale_labels
