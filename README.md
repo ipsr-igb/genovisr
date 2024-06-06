@@ -23,6 +23,14 @@ To install the development version of `genovisr` from GitHub, you can use the `d
 devtools::install_github("ipsr-igb/genovisr", build_vignettes = TRUE)
 ```
 
+## Vignette
+
+For more information, run the following code on a R console to see a vignette.
+```R
+browseVignettes(package = "genovisr")
+```
+
+
 ## Features
 
 With `genovisr`, you can:
