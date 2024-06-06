@@ -1,60 +1,67 @@
+#' Evaluate Segments
 #'
+#' This function evaluates the segments for haplotype and dosage data in a given `genovis` object.
 #'
-#'
+#' @param object A `genovis` class object.
+#' @param marker A character or numeric vector specifying markers to include in the evaluation. Default is `NULL`.
+#' @param data A character vector specifying which data to use, either "haplotype" or "dosage". Default is c("haplotype", "dosage").
+#' @return The input `genovis` object with evaluated segments.
 #' @export
-#'
-#'
+evalSegments <- function(object, marker = NULL, data = c("haplotype", "dosage")) {
 
-evalSegments <- function(object, marker = NULL,
-                      data = c("haplotype", "dosage")){
-  if(!inherits(x = object, what = "genovis")){
+  # Check if the input object is of class 'genovis'
+  if (!inherits(x = object, what = "genovis")) {
     stop("The input object should be a genovis class object.")
   }
 
-  if(is.null(marker)){
+  # If no markers are specified, select all markers
+  if (is.null(marker)) {
     marker <- rep(TRUE, nrow(object$marker_info))
-
   } else {
-    if(is.character(marker)){
+    # Determine markers based on the type of input
+    if (is.character(marker)) {
       marker <- object$marker_info$id %in% marker
-
-    } else if(is.character(marker)){
-      marker <- object$marker_info$id %in% marker
-
-    } else if(is.numeric(marker)){
+    } else if (is.numeric(marker)) {
       marker <- seq_along(object$marker_info$id) %in% marker
     }
   }
 
-  data <- match.arg(arg = data,
-                    choices = c("haplotype", "dosage"),
-                    several.ok = TRUE)
+  # Match the data argument with allowed choices
+  data <- match.arg(arg = data, choices = c("haplotype", "dosage"), several.ok = TRUE)
 
-  options(scipen = 10)
+  options(scipen = 10)  # Set scientific notation penalty
 
   object$segments <- NULL
-  if("haplotype" %in% data){
-    if(is.null(object$haplotype)){
-      message("Haplotype information is not available for the given dataset.")
 
+  # Process haplotype data if specified
+  if ("haplotype" %in% data) {
+    if (is.null(object$haplotype)) {
+      message("Haplotype information is not available for the given dataset.")
     } else {
       out <- .getSegmetsHaplotype(object = object, marker = marker)
       object$segments <- c(object$segments, list(haplotype = out))
     }
   }
-  if("dosage" %in% data){
-    if(is.null(object$dosage)){
-      message("Dosage information is not available for the given dataset.")
 
+  # Process dosage data if specified
+  if ("dosage" %in% data) {
+    if (is.null(object$dosage)) {
+      message("Dosage information is not available for the given dataset.")
     } else {
       out <- .getSegmetsDosage(object = object, marker = marker)
       object$segments <- c(object$segments, list(dosage = out))
     }
   }
+
   return(object)
 }
 
-.getSegmetsHaplotype <- function(object, marker){
+#' Get Segments for Haplotype Data
+#'
+#' @param object A `genovis` class object.
+#' @param marker A logical vector indicating selected markers.
+#' @return A dataframe containing the segments for haplotype data.
+.getSegmetsHaplotype <- function(object, marker) {
   dat <- object$haplotype[,, marker]
   n_hap <- dim(dat)[1]
   dat <- apply(X = dat, MARGIN = 3, c)
@@ -65,7 +72,12 @@ evalSegments <- function(object, marker = NULL,
   return(out)
 }
 
-.getSegmetsDosage <- function(object, marker){
+#' Get Segments for Dosage Data
+#'
+#' @param object A `genovis` class object.
+#' @param marker A logical vector indicating selected markers.
+#' @return A dataframe containing the segments for dosage data.
+.getSegmetsDosage <- function(object, marker) {
   dat <- object$dosage[, marker]
   rownames(dat) <- object$sample_info$id
   df <- cbind(subset(object$marker_info[marker, ], select = chr:pos), t(dat))
@@ -73,12 +85,16 @@ evalSegments <- function(object, marker = NULL,
   return(out)
 }
 
-.getSegmetsEngine <- function(df){
+#' Get Segments Engine
+#'
+#' @param df A dataframe containing marker and data information.
+#' @return A dataframe with evaluated segments.
+.getSegmetsEngine <- function(df) {
   xo <- apply(X = subset(df, select = -(chr:pos)), MARGIN = 2, diff)
-  xo_i <- apply(X = xo, MARGIN = 2, function(x){x != 0})
+  xo_i <- apply(X = xo, MARGIN = 2, function(x) {x != 0})
   chr_boundary <- diff(as.numeric(factor(df$chr))) != 0
   blocks <- xo_i | chr_boundary
-  out <- lapply(X = seq_len(ncol(blocks)), function(i){
+  out <- lapply(X = seq_len(ncol(blocks)), function(i) {
     blocks_i <- which(blocks[, i])
     blocks_s <- c(0, blocks_i) + 1
     blocks_e <- c(blocks_i, nrow(df))

@@ -1,10 +1,12 @@
-#' @export
+#' Launch Shiny Application for GenovisR
 #'
+#' This function launches a Shiny application for visualizing and analyzing genotypic data using the GenovisR package.
+#'
+#' @export
 #' @import shiny ggplot2 plotly shinyjs
 shinyGenovir <- function() {
   shinyApp(ui = .app_ui, server = .app_server)
 }
-
 
 # Define the UI with custom font for the title
 .app_ui <- navbarPage(
@@ -13,6 +15,7 @@ shinyGenovir <- function() {
     "GenovisR"
   ),
 
+  # Tab for file loading
   tabPanel("File Loading",
            fluidPage(
              useShinyjs(),
@@ -43,6 +46,7 @@ shinyGenovir <- function() {
            )
   ),
 
+  # Tab for plotting
   tabPanel("Plotting",
            fluidPage(
              sidebarLayout(
@@ -80,7 +84,7 @@ shinyGenovir <- function() {
 
 # Define the server logic
 .app_server <- function(input, output, session) {
-  # Initialize prev_samples as a reactive value
+  # Initialize reactive values for previously selected samples and currently selected samples
   prev_samples <- reactiveVal(NULL)
   selected_samples_hist <- reactiveVal(NULL)
   selected_samples_graph <- reactiveVal(NULL)
@@ -91,10 +95,11 @@ shinyGenovir <- function() {
     options(shiny.maxRequestSize = shiny.maxRequestSize)
   })
 
-  # Reactive expression to read the uploaded GDS file and extract necessary information
+  # Reactive values for the GDS object and the genovis object
   gbsr_obj <- reactiveVal()
   genovis_obj <- reactiveVal()
 
+  # Observe file input and process the uploaded GDS file
   observeEvent(input$file, {
     req(input$file)
     tryCatch({
@@ -137,6 +142,7 @@ shinyGenovir <- function() {
     })
   })
 
+  # Observe the set_parents button and set parents for the GDS object
   observeEvent(input$set_parents, {
     req(gbsr_obj(), input$parent_samples)
 
@@ -240,6 +246,7 @@ shinyGenovir <- function() {
     })
   })
 
+  # Confirm setting of parents
   observeEvent(input$confirm_set_parents, {
     removeModal()
     selected_samples <- input$parent_samples
@@ -369,6 +376,7 @@ shinyGenovir <- function() {
     })
   })
 
+  # Observe the selection of samples for histogram plotting
   observeEvent(input$select_samples_hist, {
     req(gbsr_obj())
     sample_names <- getSamID(gbsr_obj())
@@ -383,11 +391,13 @@ shinyGenovir <- function() {
     ))
   })
 
+  # Confirm the selection of samples for histogram plotting
   observeEvent(input$confirm_hist_samples, {
     selected_samples_hist(input$hist_samples)
     removeModal()
   })
 
+  # Observe the selection of samples for graphical genotype plotting
   observeEvent(input$select_samples_graph, {
     req(gbsr_obj())
     sample_names <- getSamID(gbsr_obj())
@@ -402,6 +412,7 @@ shinyGenovir <- function() {
     ))
   })
 
+  # Confirm the selection of samples for graphical genotype plotting
   observeEvent(input$confirm_graph_samples, {
     selected_samples_graph(input$graph_samples)
     removeModal()

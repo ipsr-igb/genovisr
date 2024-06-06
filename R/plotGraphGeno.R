@@ -1,72 +1,85 @@
+#' Plot Graphical Genotypes
 #'
+#' This function plots graphical genotypes for either haplotype or dosage data from a `genovis` object.
+#'
+#' @param object A `genovis` class object.
+#' @param data A character string specifying which data to use, either "haplotype" or "dosage". Default is "haplotype".
+#' @param sample A character or numeric vector specifying samples to include in the plot. Default is `NULL`.
+#' @param direction A character string specifying the plot direction, either "h" (horizontal) or "v" (vertical). Default is "h".
+#' @param width A numeric value specifying the width of the plot elements. Default is 0.1.
+#' @return A ggplot object representing the graphical genotypes.
 #' @export
 #' @import ggplot2
-#' @importFrom tidyr pivot_longer
-#'
-
 plotGraphGeno <- function(object,
                           data = "haplotype",
                           sample = NULL,
                           direction = "h",
-                          width = 0.1){
-  if(!inherits(x = object, what = "genovis")){
+                          width = 0.1) {
+  # Check if the input object is of class 'genovis'
+  if (!inherits(x = object, what = "genovis")) {
     stop("The input object should be a genovis class object.")
   }
 
-  if(is.null(object$segments)){
+  # Check if segments data is available
+  if (is.null(object$segments)) {
     stop('Run evalSegments() to prepare data to plot graphical genotypes.')
   }
-  if(is.null(sample)){
+
+  # If no samples are specified, select all samples
+  if (is.null(sample)) {
     sample <- rep(TRUE, nrow(object$sample_info))
-
   } else {
-    if(is.character(sample)){
+    # Determine samples based on the type of input
+    if (is.character(sample)) {
       sample <- object$sample_info$id %in% sample
-
-    } else if(is.character(sample)){
-      sample <- object$sample_info$id %in% sample
-
-    } else if(is.numeric(sample)){
+    } else if (is.numeric(sample)) {
       sample <- seq_along(object$sample_info$id) %in% sample
     }
   }
 
-  if(direction == "v" & sum(sample) > 1){
+  # Limit to one sample if plotting vertically
+  if (direction == "v" & sum(sample) > 1) {
     message("When 'v' was specified to 'direction', ",
             "a graphical genotype plot for only one sample can be drawn.")
     message("The first sample was chosen for plotting.")
     sample[-which(sample)[1]] <- FALSE
   }
 
+  # Match the data argument with allowed choices
   data <- match.arg(arg = data, choices = c("haplotype", "dosage"))
-  if(data == "haplotype"){
+
+  # Process haplotype data if specified
+  if (data == "haplotype") {
     df <- object$segments$haplotype
     n_hap <- dim(object$haplotype)[1]
-    sample_lables <- paste(rep(object$sample_info$id[sample], each = n_hap),
+    sample_labels <- paste(rep(object$sample_info$id[sample], each = n_hap),
                            paste0("hap", seq_len(n_hap)), sep = "_")
     legend <- "Haplotype"
     scale_breaks <- attributes(object$haplotype)$scale_breaks
     scale_labels <- attributes(object$haplotype)$scale_labels
-
-  } else if(data == "dosage"){
+  }
+  # Process dosage data if specified
+  else if (data == "dosage") {
     df <- object$segments$dosage
-    sample_lables <- object$sample_info$id[sample]
+    sample_labels <- object$sample_info$id[sample]
     legend <- "Dosage"
     scale_breaks <- attributes(object$dosage)$scale_breaks
     scale_labels <- attributes(object$dosage)$scale_labels
   }
-  df <- subset(df, subset = name %in% sample_lables)
-  df$class <- factor(df$class, levels = scale_breaks)
-  df$name <- factor(df$name, levels = sample_lables)
 
-  if(direction == "v"){
+  # Filter segments data for the specified samples
+  df <- subset(df, subset = name %in% sample_labels)
+  df$class <- factor(df$class, levels = scale_breaks)
+  df$name <- factor(df$name, levels = sample_labels)
+
+  # Plot based on the specified direction
+  if (direction == "v") {
     p <- .plotVertical(df = df,
                        legend = legend,
                        scale_breaks = scale_breaks,
                        scale_labels = scale_labels,
                        sample_name = object$sample_info$id[sample],
                        width = width)
-
   } else {
     p <- .plotHorizontal(df = df,
                          legend = legend,
@@ -77,8 +90,17 @@ plotGraphGeno <- function(object,
   return(p)
 }
 
+#' Plot Vertical Graphical Genotypes
+#'
+#' @param df A dataframe containing the segments data.
+#' @param legend A character string for the legend title.
+#' @param scale_breaks A numeric vector for scale breaks.
+#' @param scale_labels A character vector for scale labels.
+#' @param sample_name A character string for the sample name.
+#' @param width A numeric value specifying the width of the plot elements.
+#' @return A ggplot object representing the vertical graphical genotypes.
 .plotVertical <- function(df, legend, scale_breaks, scale_labels,
-                          sample_name, width){
+                          sample_name, width) {
   df$xmin <- df$xmax <- plot_xmax <- as.numeric(df$name)
   df$xmin <- df$xmin - 1 + width
   df$xmax <- df$xmax - width
@@ -121,7 +143,14 @@ plotGraphGeno <- function(object,
   return(p)
 }
 
-.plotHorizontal <- function(df, legend, scale_breaks, scale_labels){
+#' Plot Horizontal Graphical Genotypes
+#'
+#' @param df A dataframe containing the segments data.
+#' @param legend A character string for the legend title.
+#' @param scale_breaks A numeric vector for scale breaks.
+#' @param scale_labels A character vector for scale labels.
+#' @return A ggplot object representing the horizontal graphical genotypes.
+.plotHorizontal <- function(df, legend, scale_breaks, scale_labels) {
   df$ymin <- df$ymax <- as.numeric(df$name)
   df$ymin <- df$ymin - 1
 

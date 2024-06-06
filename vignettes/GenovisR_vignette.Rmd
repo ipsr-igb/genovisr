@@ -1,0 +1,206 @@
+---
+title: "Basic usage of the GenovisR package"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+
+vignette: >
+  %\\VignetteIndexEntry{Basic usage of the GenovisR package}
+  %\\VignetteEngine{knitr::rmarkdown}
+  %\\VignetteEncoding{UTF-8}
+  
+---
+  
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+collapse = TRUE,
+comment = "#>"
+)
+```
+
+```{r setup}
+library(genovisr)
+library(GBScleanR)
+library(plotly)
+library(Biostrings)
+```
+
+# Genovis class object
+
+Create dummy data to walk through the package with.
+```{r}
+object <- simGenovis()
+```
+
+### Marker information
+The marker_info slot of the genovis class object stores the position and 
+allele information of the genotyping markers.
+The `id` column shows marker IDs that have been created by concatenating the 
+chromosome IDs and physical positions of markers.
+```{r}
+# Marker information
+head(object$marker_info)
+```
+
+The sample_info slot stores sample IDs. If your data was created by merging two
+genovis class objects with the `pop` argument, this slot also contains the `pop` 
+column to indicate which populations the samples belong to.
+```{r}
+# Sample information
+head(object$sample_info)
+```
+
+Genotype calls created by variant callers, e.g. samtools and GATK, are stored in 
+the genotype slot as an N x M matrix, where N and M are the number of samples and 
+markers, respectively.
+```{r}
+# Genotype data
+object$genotype[1:5, 1:5]
+```
+
+Estimated haplotype data created by GBScleanR are stored in the haplotype slot 
+as a P x N x M array, where P, N, and M are the number of ploidy, samples, and 
+markers.
+```{r}
+# Haplotype data
+object$haplotype[, 1:5, 1:5]
+```
+
+The dosage slot stores dosage data calculated from the haplotype data. The 
+dosage data will be provided only if the given population shows segregation of 
+two haplotypes, e.g. a biparental population derived from two inbred founders. 
+The integer of the `[i,j]` element of the dosage data matrix indicates the number
+of the Hap2 allele at the `j`th marker of the `i`th sample.
+```{r}
+# Dosage data
+object$dosage[1:5, 1:5]
+```
+
+# Data import
+## From GBScleanR output
+The genovis class object can be constructed directly from a GDS file 
+created by the GBScleanR package. The GBScleanR package provides functions to
+convert Variant Call Format (VCF) files to Genotype Data Structure (GDS) files 
+for quick access to large genotype data and estimate haplotypes and dosages
+of genotype markers based on allelic read counts using a hidden Markov model. The 
+`gbscleanr2genovis()` function extracts marker, sample, and genotype information
+from a given GDS file. If the GDS file contains haplotype and dosage information,
+these data are also included in the output genovis class object.
+
+```{r eval=FALSE}
+object <- gbscleanr2genovis(gds_fn = "/path/to/your/gds_file.gds")
+```
+
+# Data visualization
+The genotype, haplotype, and dosage information in a genovis class object can be
+visualized using a variety of data visualization functions provided by the 
+genovisr package.
+
+## Classical graphical genotype
+Classical graphical genotype is a representation of genotypes by colored tiles 
+to indicate which genomic region has which genomic segment descended from which
+parent. Therefore, the word "genotype" means descended "haplotype" in this 
+context nowadays. The `evalSegments()` function summarizes breakpoints of haplotypes
+and dosages in the given genomes.
+
+```{r}
+object <- evalSegments(object = object)
+```
+
+The `plotGraphGeno()` function visualizes haplotypes and dosages in a graphical 
+representation based on the obtained breakpoint information. 
+
+```{r}
+plotGraphGeno(object = object, direction = "h", data = "haplotype", sample = 1:5, width = 0.1)
+```
+
+```{r}
+plotGraphGeno(object = object, direction = "h", data = "dosage", sample = 1:10, width = 0.1)
+```
+
+```{r}
+plotGraphGeno(object = object, direction = "v", data = "haplotype", sample = 1, width = 0.15)
+```
+
+```{r}
+plotGraphGeno(object = object, direction = "v", data = "dosage", sample = 1, width = 0.1)
+```
+
+The plotly package can be used to make these plots interactive.
+
+```{r}
+p <- plotGraphGeno(object = object, direction = "v", data = "haplotype", sample = 1, width = 0.15)
+ggplotly(p)
+```
+
+```{r}
+p <- plotGraphGeno(object = object, direction = "v", data = "dosage", sample = 1, width = 0.1)
+ggplotly(p)
+```
+
+## Statistical summary
+We can also get the statistical summary of haplotype and dosage information using the `statsGeno()` function. The function requires a numeric vector indicating the lengths of chromosomes.
+
+```{r}
+# If you have the reference genome FASTA, retrieve the chromosome lengths from the FASTA
+# ref_genome <- readDNAStringSet(filepath = "genome.fa")
+# ref_genome <- sort(ref_genome)
+# chr_len <- width(ref_genome)
+chr_len <- rep(42, 12) * 1e6
+object <- statsGeno(object = object, chr_len = chr_len)
+```
+
+Visualize the obtained statistical summary using `plotStats()`.
+
+```{r}
+plotStats(object = object, data = "haplotype", group = "hap", value = "class")
+```
+
+```{r}
+plotStats(object = object, data = "dosage", group = "sample", value = "segment")
+```
+
+## Histogram of segment lengths
+The `plotHist()` function can be used to create histograms of segment lengths for haplotype or dosage data.
+
+```{r}
+plotHist(object = object, data = "haplotype", binwidth = 1e6, fill = "darkgreen")
+```
+
+```{r}
+plotHist(object = object, data = "dosage", binwidth = 1e6, fill = "blue", chrwise = TRUE)
+```
+
+```{r}
+plotHist(object = object, data = "haplotype", binwidth = 1e6, fill = "red", samplewise = TRUE, ncol = 3)
+```
+
+# Interactive Shiny Application
+GenovisR also provides an interactive Shiny application for visualizing and analyzing genotypic data.
+
+## Launch the Shiny app
+Use the `shinyGenovir()` function to launch the Shiny application.
+
+```{r eval=FALSE}
+shinyGenovir()
+```
+
+This application allows users to load GDS files, set parent samples, and visualize data interactively through various plots and controls. The Shiny app integrates many of the functions described above into a user-friendly interface.
+
+## Example: Loading a GDS file
+Once the Shiny application is running, you can load a GDS file by selecting it from your file system. After the file is loaded, you can set the parent samples and visualize the genotype, haplotype, and dosage information interactively.
+
+```{r eval=FALSE}
+# Example of loading a GDS file within the Shiny app
+```
+
+## Example: Visualizing data
+The Shiny app provides controls for tweaking histogram parameters, graphical genotype parameters, and statistical parameters, allowing for dynamic and interactive data exploration.
+
+```{r eval=FALSE}
+# Example of visualizing data within the Shiny app
+```
+
+By following this vignette, you should be able to effectively use the GenovisR package to visualize and analyze genotypic data, whether through R scripts or an interactive Shiny application.
