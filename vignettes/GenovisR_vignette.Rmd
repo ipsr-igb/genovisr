@@ -21,7 +21,7 @@ comment = "#>"
 ```
 
 ```{r setup}
-library(genovisr)
+library(GenovisR)
 library(GBScleanR)
 library(plotly)
 library(Biostrings)
@@ -96,7 +96,7 @@ object <- gbscleanr2genovis(gds_fn = "/path/to/your/gds_file.gds")
 # Data visualization
 The genotype, haplotype, and dosage information in a genovis class object can be
 visualized using a variety of data visualization functions provided by the 
-genovisr package.
+GenovisR package.
 
 ## Classical graphical genotype
 Classical graphical genotype is a representation of genotypes by colored tiles 
@@ -188,19 +188,5 @@ shinyGenovir()
 ```
 
 This application allows users to load GDS files, set parent samples, and visualize data interactively through various plots and controls. The Shiny app integrates many of the functions described above into a user-friendly interface.
-
-## Example: Loading a GDS file
 Once the Shiny application is running, you can load a GDS file by selecting it from your file system. After the file is loaded, you can set the parent samples and visualize the genotype, haplotype, and dosage information interactively.
-
-```{r eval=FALSE}
-# Example of loading a GDS file within the Shiny app
-```
-
-## Example: Visualizing data
 The Shiny app provides controls for tweaking histogram parameters, graphical genotype parameters, and statistical parameters, allowing for dynamic and interactive data exploration.
-
-```{r eval=FALSE}
-# Example of visualizing data within the Shiny app
-```
-
-By following this vignette, you should be able to effectively use the GenovisR package to visualize and analyze genotypic data, whether through R scripts or an interactive Shiny application.

@@ -66,7 +66,7 @@ gbscleanr2genovis <- function(gbsr, verbose = TRUE) {
   }
 
   # Add dosage information if available.
-  if (exist.gdsn(node = gbsr$root, path = "annotation/format/DS")) {
+  if (exist.gdsn(node = gbsr$root, path = "annotation/format/EDS")) {
     out$dosage <- .getDosageFromGBSR(gbsr = gbsr)
   } else {
     message("Dosage information is not available for the given dataset.")
@@ -134,6 +134,7 @@ gbscleanr2genovis <- function(gbsr, verbose = TRUE) {
     hap <- getHaplotype(object = gbsr, parents = FALSE)
     n_ploidy <- dim(hap)[1]
     max_hap <- max(hap, na.rm = TRUE)
+
   } else {
     p_hap <- getHaplotype(object = gbsr, parents = "only")
     n_ploidy <- dim(p_hap)[1]
@@ -145,6 +146,7 @@ gbscleanr2genovis <- function(gbsr, verbose = TRUE) {
     out <- getGenotype(object = gbsr, node = "dosage", parents = "FALSE")
     attributes(out)$scale_breaks <- seq_len(n_ploidy)
     attributes(out)$scale_labels <- paste0("Plex", seq(0, n_ploidy))
+
   } else {
     message("The number of haplotypes in the data is ", max_hap, ".",
             "\nDosage information is available only when the number of ",
