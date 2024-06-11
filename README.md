@@ -12,9 +12,10 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
     
 BiocManager::install("Biostrings")
+BiocManager::install("GBScleanR")
 ```
 
-To install `GBScleanR`, please visit the [GitHub repository](https://github.com/tomoyukif/GBScleanR)
+for details of `GBScleanR`, please visit the [GitHub repository](https://github.com/tomoyukif/GBScleanR)
 
 To install the development version of `GenovisR` from GitHub, you can use the `devtools` package:
 

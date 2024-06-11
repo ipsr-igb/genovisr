@@ -1,16 +1,23 @@
-Package: genovisr
-Title: What the Package Does (One Line, Title Case)
+Package: GenovisR
+Type: Package
+Title: Visualizing and analyzing genotypic data
 Version: 0.1.1
+Date: 2024-6-11
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    person("Tomoyuki", "Furuta", , "f.tomoyuki@okayama-u.ac.jp", 
+           role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-0869-6626"))
+Description: GenovisR is an R package designed for visualizing and analyzing 
+genotypic data. It provides comprehensive tools to import, visualize, 
+and summarize genotype, haplotype, and dosage data. The package also includes 
+a Shiny application for interactive data exploration.
+License: use_gpl3_license()
 Encoding: UTF-8
+Depends: SeqArray
+Imports: stats, utils, methods, ggplot2, tidyr, expm, Rcpp, RcppParallel, gdsfmt
+Suggests: BiocStyle, testthat (>= 3.0.0), knitr, rmarkdown
+VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
-Suggests: 
-    knitr,
-    rmarkdown
-VignetteBuilder: knitr
+BugReports: https://github.com/ipsr-igb/genovisr/issues
+URL: https://github.com/ipsr-igb/genovisr
