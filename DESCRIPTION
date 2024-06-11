@@ -8,9 +8,9 @@ Authors@R:
            role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-0869-6626"))
 Description: GenovisR is an R package designed for visualizing and analyzing 
-genotypic data. It provides comprehensive tools to import, visualize, 
-and summarize genotype, haplotype, and dosage data. The package also includes 
-a Shiny application for interactive data exploration.
+    genotypic data. It provides comprehensive tools to import, visualize, 
+    and summarize genotype, haplotype, and dosage data. The package also includes 
+    a Shiny application for interactive data exploration.
 License: use_gpl3_license()
 Encoding: UTF-8
 Depends: SeqArray
