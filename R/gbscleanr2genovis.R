@@ -31,6 +31,13 @@ gbscleanr2genovis <- function(gbsr, verbose = TRUE) {
     stop("A path to a GDS file should be specified to 'gds_fn'.")
   }
 
+  parents <- getParents(object = gbsr, verbose = FALSE)
+
+  if(is.null(parents)){
+    gbsr <- .setParentsFromGDS(gbsr = gbsr)
+    parents <- getParents(object = gbsr, verbose = FALSE)
+  }
+
   # Pull out data required to build a genovis class object.
   # Get marker allele information.
   allele <- getAllele(object = gbsr)
@@ -79,9 +86,24 @@ gbscleanr2genovis <- function(gbsr, verbose = TRUE) {
   return(out)
 }
 
+#' @importFrom gdsfmt index.gdsn read.gdsn exist.gdsn
+#' @importFrom GBScleanR setParents
+.setParentsFromGDS <- function(gbsr){
+  parents_gdsn <- "parents/data"
+
+  if(exist.gdsn(node = gbsr$root, path = parents_gdsn)){
+    parents <- read.gdsn(node = index.gdsn(node = gbsr$root,
+                                           path = parents_gdsn))
+    parents <- getSamID(object = gbsr, valid = FALSE)[parents != 0]
+    gbsr <- setParents(object = gbsr, parents = parents)
+  }
+  return(gbsr)
+}
+
 #' Get Haplotype Information from GBSR
 #'
 #' @param gbsr A GbsrGenotypeData object.
+#' @importFrom GBScleanR getParents
 #' @return A haplotype matrix with scale breaks and labels as attributes.
 .getHaplotypeFromGBSR <- function(gbsr) {
   parents <- getParents(object = gbsr, verbose = FALSE)
@@ -92,6 +114,7 @@ gbscleanr2genovis <- function(gbsr, verbose = TRUE) {
     if (max_hap == 2) {
       scale_breaks <- seq_len(2)
       scale_labels <- paste0("Hap", seq_len(2))
+
     } else {
       stop("The number of haplotypes in the data is ", max_hap, ".",
            "\nWhen the number of haplotypes is more than two, ",
@@ -99,6 +122,7 @@ gbscleanr2genovis <- function(gbsr, verbose = TRUE) {
            " the given genotype and haplotype data.",
            "\nPlease set parental samples using setParents().")
     }
+
   } else {
     p_hap <- getHaplotype(object = gbsr, parents = "only")
     p_hap <- p_hap[,, 1]
@@ -129,6 +153,11 @@ gbscleanr2genovis <- function(gbsr, verbose = TRUE) {
 #' @return A dosage matrix with scale breaks and labels as attributes.
 .getDosageFromGBSR <- function(gbsr) {
   parents <- getParents(object = gbsr, verbose = FALSE)
+
+  if(is.null(parents)){
+    gbsr <- .setParentsFromGDS(gbsr = gbsr)
+    parents <- getParents(object = gbsr, verbose = FALSE)
+  }
 
   if (is.null(parents)) {
     hap <- getHaplotype(object = gbsr, parents = FALSE)

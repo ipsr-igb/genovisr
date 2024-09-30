@@ -90,7 +90,8 @@ from a given GDS file. If the GDS file contains haplotype and dosage information
 these data are also included in the output genovis class object.
 
 ```{r eval=FALSE}
-object <- gbscleanr2genovis(gds_fn = "/path/to/your/gds_file.gds")
+gbsr <- loadGDS(x = "/path/to/your/gds_file.gds")
+object <- gbscleanr2genovis(gbsr = gbsr)
 ```
 
 # Data visualization
