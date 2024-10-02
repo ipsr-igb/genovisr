@@ -14,13 +14,17 @@ simGenovis(
 )
 }
 \arguments{
-\item{n_sample}{An integer to specify the number of samples.}
+\item{n_sample}{An integer to specify the number of samples. Default is 10.}
 
-\item{n_marker}{An integer to specify the number of markers.}
+\item{n_marker}{An integer to specify the number of markers. Default is 1000.}
 
-\item{n_ploidy}{An integer to specify the ploidy.}
+\item{n_chr}{An integer to specify the number of chromosomes. Default is 12.}
 
-\item{n_haplotype}{An integer to specify the number of haplotypes.}
+\item{chr_len}{An integer vector to specify the length of each chromosome in megabases. Default is a random sample between 20 and 40 Mb.}
+
+\item{n_ploidy}{An integer to specify the ploidy. Default is 2.}
+
+\item{n_haplotype}{An integer to specify the number of haplotypes. Default is 2.}
 }
 \description{
 Create a genovis class object storing dummy data
@@ -30,6 +34,6 @@ Create a genovis class object storing dummy data
 genovis <- simGenovis()
 
 # Create simulation data with tweaking settings.
-genovis <- simGenovis(n_sample = 100, n_amrker = 2500, n_chr = 5)
+genovis <- simGenovis(n_sample = 100, n_marker = 2500, n_chr = 5)
 
 }
