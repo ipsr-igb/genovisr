@@ -90,6 +90,7 @@ evalSegments <- function(object, marker = NULL, data = c("haplotype", "dosage"))
 #' @param df A dataframe containing marker and data information.
 #' @return A dataframe with evaluated segments.
 .getSegmetsEngine <- function(df) {
+  df[is.na(df)] <- 100
   xo <- apply(X = subset(df, select = -(chr:pos)), MARGIN = 2, diff)
   xo_i <- apply(X = xo, MARGIN = 2, function(x) {x != 0})
   chr_boundary <- diff(as.numeric(factor(df$chr))) != 0
@@ -98,14 +99,20 @@ evalSegments <- function(object, marker = NULL, data = c("haplotype", "dosage"))
     blocks_i <- which(blocks[, i])
     blocks_s <- c(0, blocks_i) + 1
     blocks_e <- c(blocks_i, nrow(df))
+    name <- colnames(df)[i + 2]
+    sample_id <- sub("_hap[0-9]", "", name)
+    hap_id <- sub(paste0(sample_id, "_"), "", name)
     blocks_df <- data.frame(name = colnames(df)[i + 2],
+                            sample_id = sample_id,
+                            hap_id = hap_id,
                             start_index = blocks_s,
                             end_index = blocks_e,
                             chr = df$chr[blocks_e],
                             start_pos = df$pos[blocks_s],
                             end_pos = df$pos[blocks_e],
-                            class = df[c(blocks_i, nrow(df)), i + 2])
+                            class = df[blocks_s, i + 2])
   })
   out <- do.call("rbind", out)
+  out$class[out$class == 100] <- NA
   return(out)
 }

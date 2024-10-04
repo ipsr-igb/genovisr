@@ -9,7 +9,11 @@ plotGraphGeno(
   data = "haplotype",
   sample = NULL,
   direction = "h",
-  margin = 0.1
+  margin = c(0.1, 0.5, 5),
+  linewidth = 0.3,
+  label_margin = c(-10, -10),
+  text_size = c(8, 8),
+  relabel = NULL
 )
 }
 \arguments{

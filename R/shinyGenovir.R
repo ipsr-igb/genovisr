@@ -63,7 +63,7 @@ shinyGenovir <- function() {
                  h4("Graph Geno Parameters"),
                  selectInput("data_type_graph", "Data Type for Graph Geno", choices = c("haplotype", "dosage")),
                  selectInput("direction", "Direction", choices = c("h", "v"), selected = "h"),
-                 numericInput("width", "Width", value = 0.1, min = 0.1, max = 0.9, step = 0.01),
+                 numericInput("margin", "Margin", value = 0.1, min = 0.1, max = 0.9, step = 0.01),
                  actionButton("select_samples_graph", "Select Samples for Graph Geno"),
                  hr(),
                  h4("Stats Parameters"),
@@ -229,7 +229,7 @@ shinyGenovir <- function() {
           footer = NULL
         ))
       } else {
-        ggplotly(plotGraphGeno(genovis_obj(), data = input$data_type_graph, sample = selected_samples_graph(), direction = input$direction, width = input$width))
+        ggplotly(plotGraphGeno(genovis_obj(), data = input$data_type_graph, sample = selected_samples_graph(), direction = input$direction, margin = input$margin))
       }
     })
 
@@ -317,7 +317,7 @@ shinyGenovir <- function() {
           footer = NULL
         ))
       } else {
-        ggplotly(plotGraphGeno(genovis_obj(), data = input$data_type_graph, sample = selected_samples_graph(), direction = input$direction, width = input$width))
+        ggplotly(plotGraphGeno(genovis_obj(), data = input$data_type_graph, sample = selected_samples_graph(), direction = input$direction, margin = input$margin))
       }
     })
 
@@ -364,7 +364,7 @@ shinyGenovir <- function() {
           footer = NULL
         ))
       } else {
-        ggplotly(plotGraphGeno(genovis_obj(), data = input$data_type_graph, sample = selected_samples_graph(), direction = input$direction, width = input$width))
+        ggplotly(plotGraphGeno(genovis_obj(), data = input$data_type_graph, sample = selected_samples_graph(), direction = input$direction, margin = input$margin))
       }
     })
   })
