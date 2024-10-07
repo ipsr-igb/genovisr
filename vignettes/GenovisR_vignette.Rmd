@@ -114,30 +114,30 @@ The `plotGraphGeno()` function visualizes haplotypes and dosages in a graphical
 representation based on the obtained breakpoint information. 
 
 ```{r}
-plotGraphGeno(object = object, direction = "h", data = "haplotype", sample = 1:5, margin = 0.1)
+plotGraphGeno(object = object, direction = "h", data = "haplotype", sample = 1:5)
 ```
 
 ```{r}
-plotGraphGeno(object = object, direction = "h", data = "dosage", sample = 1:10, margin = 0.1)
+plotGraphGeno(object = object, direction = "h", data = "dosage", sample = 1:10)
 ```
 
 ```{r}
-plotGraphGeno(object = object, direction = "v", data = "haplotype", sample = 1, margin = 0.15)
+plotGraphGeno(object = object, direction = "v", data = "haplotype", sample = 5)
 ```
 
 ```{r}
-plotGraphGeno(object = object, direction = "v", data = "dosage", sample = 1, margin = 0.1)
+plotGraphGeno(object = object, direction = "v", data = "dosage", sample = 1)
 ```
 
 The plotly package can be used to make these plots interactive.
 
 ```{r}
-p <- plotGraphGeno(object = object, direction = "h", data = "haplotype", sample = 1:5, margin = 0.1)
+p <- plotGraphGeno(object = object, direction = "h", data = "haplotype", sample = 1:5)
 ggplotly(p)
 ```
 
 ```{r}
-p <- plotGraphGeno(object = object, direction = "v", data = "haplotype", sample = 1, margin = 0.1)
+p <- plotGraphGeno(object = object, direction = "v", data = "haplotype", sample = 1)
 ggplotly(p)
 ```
 

@@ -63,8 +63,8 @@ plotGraphGeno <- function(object,
     legend <- "Haplotype"
     scale_breaks <- attributes(object$haplotype)$scale_breaks
     scale_labels <- attributes(object$haplotype)$scale_labels
-    df$sample_id <- factor(df$sample_id, levels = sample_labels)
     df$hap_id <- factor(df$hap_id, levels = hap_labels)
+    df$sample_id <- factor(df$sample_id, levels = sample_labels)
 
   } else if (data == "dosage") {   # Process dosage data if specified
     df <- object$segments$dosage
@@ -73,6 +73,9 @@ plotGraphGeno <- function(object,
     scale_breaks <- attributes(object$dosage)$scale_breaks
     scale_labels <- attributes(object$dosage)$scale_labels
     n_ploidy <- 1
+    df$hap_id <- NULL
+    sample_labels <- object$sample_info$id[sample]
+    df$sample_id <- factor(df$sample_id, levels = sample_labels)
   }
 
   if(!is.null(relabel)){
@@ -202,11 +205,16 @@ plotGraphGeno <- function(object,
   row_val <- row_val + margin[1] * row_val
   row_val <- row_val + rep(c(0, margin[2] * seq_len(n_sample - 1)), each = n_ploidy)
   sample_index <- as.numeric(df$sample_id)
-  haploid_index <- as.numeric(df$hap_id)
-  haploid_index <- n_ploidy - haploid_index + 1
-  row_val <- sapply(seq_len(nrow(df)), function(i){
-    return(row_val[haploid_index[i], sample_index[i]])
-  })
+  if(is.null(df$hap_id)){
+    row_val <- row_val[sample_index]
+
+  } else {
+    haploid_index <- as.numeric(df$hap_id)
+    haploid_index <- n_ploidy - haploid_index + 1
+    row_val <- sapply(seq_len(nrow(df)), function(i){
+      return(row_val[haploid_index[i], sample_index[i]])
+    })
+  }
   row_val <- max(row_val) - row_val
   df$ymin <- row_val
   df$ymax <- df$ymin + 1
