@@ -173,7 +173,7 @@ gbscleanr2genovis <- function(gbsr, verbose = TRUE) {
 
   if (max_hap == 2) {
     out <- getGenotype(object = gbsr, node = "dosage", parents = "FALSE")
-    attributes(out)$scale_breaks <- seq_len(n_ploidy)
+    attributes(out)$scale_breaks <- c(0, seq_len(n_ploidy))
     attributes(out)$scale_labels <- paste0("Plex", seq(0, n_ploidy))
 
   } else {
