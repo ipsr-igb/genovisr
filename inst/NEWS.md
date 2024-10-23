@@ -1,3 +1,6 @@
+Changes in version 0.1.6 (2024-10-23)
++ Minor bug fix in gbscleanr2genovis().
+
 Changes in version 0.1.5 (2024-10-7)
 + Update plotGraphGeno() for more flexible manipulation of the interactive plot.
 + Update plotGraphGeno() to allow relabel classes of haplotypes and dosages.

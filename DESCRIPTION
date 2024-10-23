@@ -1,8 +1,8 @@
 Package: GenovisR
 Type: Package
 Title: Visualizing and analyzing genotypic data
-Version: 0.1.5
-Date: 2024-10-7
+Version: 0.1.6
+Date: 2024-10-23
 Authors@R: 
     person("Tomoyuki", "Furuta", , "f.tomoyuki@okayama-u.ac.jp", 
            role = c("aut", "cre"),
