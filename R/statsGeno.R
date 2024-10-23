@@ -177,7 +177,22 @@ statsGeno <- function(object, chr_len = NULL) {
                             drop = FALSE, data = chr_recomb)
     names(chr_recomb) <- c("name", "value")
   } else {
-    hap_recomb <- sample_recomb <- chr_recomb <- NULL
+    hap_recomb <- NULL
+    # Sample-wise recombination frequency summary
+    sample_recomb <- aggregate(x = class ~ name + chr + sample_id, FUN = .getRecombNumber,
+                               drop = TRUE, data = target_data)
+    sample_recomb <- aggregate(x = class ~ sample_id, FUN = sum,
+                               drop = FALSE, data = sample_recomb)
+    names(sample_recomb) <- c("name", "value")
+
+    # Chromosome-wise recombination frequency summary
+    chr_recomb <- aggregate(x = class ~ name + chr + sample_id, FUN = .getRecombNumber,
+                            drop = TRUE, data = target_data)
+    chr_recomb <- aggregate(x = class ~ sample_id + chr, FUN = sum,
+                            drop = FALSE, data = target_data)
+    chr_recomb <- aggregate(x = class ~ chr, FUN = sum,
+                            drop = FALSE, data = chr_recomb)
+    names(chr_recomb) <- c("name", "value")
   }
 
   out <- list(hap_class = hap_class_prop, sample_class = sample_class_prop,

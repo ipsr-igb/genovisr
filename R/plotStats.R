@@ -3,9 +3,9 @@
 #' This function plots statistics for haplotype, dosage, or recombination data from a `genovis` object.
 #'
 #' @param object A `genovis` class object.
-#' @param data A character string specifying which data to use, either "haplotype", "dosage", or "recomb". Default is "haplotype".
+#' @param data A character string specifying which data to use, either "haplotype" or "dosage", Default is "haplotype".
 #' @param group A character string specifying the grouping for the statistics, either "hap", "sample", "chr", or "genome". Default is "hap".
-#' @param value A character string specifying the value to be plotted, either "class" or "segment". Default is "class".
+#' @param value A character string specifying the value to be plotted, either "class", "segment", "recomb". Default is "class".
 #' @return A ggplot object representing the statistics plot.
 #' @export
 plotStats <- function(object,
@@ -23,16 +23,21 @@ plotStats <- function(object,
   }
 
   # Match the data, group, and value arguments with allowed choices
-  data <- match.arg(arg = data, choices = c("haplotype", "dosage", "recomb"), several.ok = FALSE)
+  data <- match.arg(arg = data, choices = c("haplotype", "dosage"), several.ok = FALSE)
   group <- match.arg(arg = group, choices = c("hap", "sample", "chr", "genome"), several.ok = FALSE)
-  value <- match.arg(arg = value, choices = c("class", "segment"), several.ok = FALSE)
+  value <- match.arg(arg = value, choices = c("class", "segment", "recomb"), several.ok = FALSE)
 
   # Plot recombination data if specified
-  if (data == "recomb") {
+  if (value == "recomb") {
     if (group == "genome") {
       stop("Whole-genome summary for recombination frequency is not available.")
     }
-    df <- object$stats$haplotype[[paste(group, "recomb", sep = "_")]]
+    if(data == "haplotype"){
+      df <- object$stats$haplotype[[paste(group, "recomb", sep = "_")]]
+
+    } else {
+      df <- object$stats$dosage[[paste(group, "recomb", sep = "_")]]
+    }
     mean_recomb <- mean(df$value, na.rm = TRUE)
     median_recomb <- median(df$value, na.rm = TRUE)
     p <- ggplot(data = df) +

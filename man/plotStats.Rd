@@ -14,11 +14,11 @@ plotStats(
 \arguments{
 \item{object}{A \code{genovis} class object.}
 
-\item{data}{A character string specifying which data to use, either "haplotype", "dosage", or "recomb". Default is "haplotype".}
+\item{data}{A character string specifying which data to use, either "haplotype" or "dosage", Default is "haplotype".}
 
 \item{group}{A character string specifying the grouping for the statistics, either "hap", "sample", "chr", or "genome". Default is "hap".}
 
-\item{value}{A character string specifying the value to be plotted, either "class" or "segment". Default is "class".}
+\item{value}{A character string specifying the value to be plotted, either "class", "segment", "recomb". Default is "class".}
 }
 \value{
 A ggplot object representing the statistics plot.
